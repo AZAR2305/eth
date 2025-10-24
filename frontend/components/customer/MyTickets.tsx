@@ -398,14 +398,7 @@ function PurchaseCard({ purchaseId }: { purchaseId: bigint }) {
               <p className="font-bold">🔒 QR Code Locked</p>
               <p className="text-sm mt-2">Available {minutesUntilQR} minutes before showtime</p>
               <p className="text-xs text-gray-400 mt-1">Showtime: {new Date(showtime * 1000).toLocaleString()}</p>
-              {process.env.NODE_ENV !== 'production' && (
-                <button
-                  onClick={() => setForceQR(true)}
-                  className="mt-3 px-3 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700"
-                >
-                  Show QR now (dev)
-                </button>
-              )}
+             
             </div>
           );
         }

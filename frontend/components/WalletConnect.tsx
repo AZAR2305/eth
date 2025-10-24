@@ -13,7 +13,7 @@ export function WalletConnect() {
 
   if (!mounted) {
     return (
-      <div className="px-6 py-2 bg-gray-700 text-white rounded-lg font-medium">
+      <div className="px-6 py-2 bg-neutral-700 text-white rounded-lg font-medium">
         Loading...
       </div>
     );
@@ -38,7 +38,7 @@ export function WalletConnect() {
   return (
     <button
       onClick={connect}
-      className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition font-medium"
+      className="px-6 py-2 btn-accent font-medium"
     >
       Connect Wallet
     </button>

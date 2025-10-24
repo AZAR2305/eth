@@ -34,15 +34,12 @@ export default function TheaterOwnerLogin() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-black text-white flex items-center justify-center px-4">
-      {/* Animated gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-pink-500/10 animate-pulse"></div>
-      
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
       <div className="relative z-10 max-w-md w-full">
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-block cursor-pointer hover:scale-105 transition">
-              <h1 className="text-6xl font-bold mb-2 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
+              <h1 className="text-6xl font-bold mb-2 text-cyan-300">
                 🎬 MOVIEX
               </h1>
               <p className="text-sm text-gray-400">OnChain Cinema Platform</p>
@@ -50,17 +47,17 @@ export default function TheaterOwnerLogin() {
           </Link>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 shadow-2xl">
+        <div className="panel p-8 rounded-3xl">
           <div className="text-center mb-6">
             <div className="text-5xl mb-4">🔐</div>
-            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-2 accent-heading">
               Theater Owner Access
             </h2>
             <p className="text-gray-400 text-sm">Enter password to continue</p>
           </div>
 
           {error && (
-            <div className="bg-red-500/20 border border-red-500 rounded-xl p-4 mb-6 animate-shake">
+            <div className="border border-red-500/50 rounded-xl p-4 mb-6 animate-shake bg-black/50">
               <p className="text-red-300 text-center font-semibold">{error}</p>
             </div>
           )}
@@ -75,14 +72,14 @@ export default function TheaterOwnerLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter theater owner password"
-                className="w-full bg-black/30 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 outline-none transition"
+                className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
                 required
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 py-3 rounded-xl font-bold text-lg shadow-lg hover:shadow-purple-500/50 transform hover:scale-105 transition-all"
+              className="w-full btn-accent py-3 rounded-xl font-bold text-lg"
             >
               🚀 Access Dashboard
             </button>
@@ -90,7 +87,7 @@ export default function TheaterOwnerLogin() {
 
           <div className="mt-6 text-center">
             <Link href="/">
-              <span className="text-sm text-gray-400 hover:text-purple-400 transition cursor-pointer">
+              <span className="text-sm link-accent cursor-pointer">
                 ← Back to Home
               </span>
             </Link>

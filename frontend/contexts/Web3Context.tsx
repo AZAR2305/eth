@@ -37,14 +37,16 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     checkConnection();
 
     // Listen for account changes
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
-      (window as any).ethereum.on('accountsChanged', handleAccountsChanged);
-      (window as any).ethereum.on('chainChanged', () => window.location.reload());
+    const eth = getInjectedEthereum();
+    if (typeof window !== 'undefined' && eth) {
+      eth.on?.('accountsChanged', handleAccountsChanged);
+      eth.on?.('chainChanged', () => window.location.reload());
     }
 
     return () => {
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        (window as any).ethereum.removeListener('accountsChanged', handleAccountsChanged);
+      const eth = getInjectedEthereum();
+      if (typeof window !== 'undefined' && eth?.removeListener) {
+        eth.removeListener('accountsChanged', handleAccountsChanged);
       }
     };
   }, []);
@@ -60,9 +62,11 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   };
 
   const checkConnection = async () => {
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
+    if (typeof window !== 'undefined') {
       try {
-        const accounts = await (window as any).ethereum.request({
+        const eth = getInjectedEthereum();
+        if (!eth) return;
+        const accounts = await eth.request({
           method: 'eth_accounts'
         });
         if (accounts.length > 0) {
@@ -77,21 +81,29 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   };
 
   const setupProvider = () => {
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
-      const web3Provider = new ethers.BrowserProvider((window as any).ethereum);
+    if (typeof window !== 'undefined') {
+      const eth = getInjectedEthereum();
+      if (!eth) return;
+      const web3Provider = new ethers.BrowserProvider(eth);
       setProvider(web3Provider);
-      web3Provider.getSigner().then(setSigner);
+      web3Provider.getSigner().then(setSigner).catch(() => {});
     }
   };
 
   const connect = async () => {
-    if (typeof window === 'undefined' || !(window as any).ethereum) {
-      alert('Please install MetaMask to connect your wallet');
+    if (typeof window === 'undefined') {
+      alert('Wallets are only available in the browser environment');
       return;
     }
 
     try {
-      const accounts = await (window as any).ethereum.request({
+      const eth = getInjectedEthereum();
+      if (!eth) {
+        // Try to guide users where MetaMask is installed but not exposing window.ethereum
+        alert('No injected wallet detected. If MetaMask is installed, enable site access in the extension settings and reload.');
+        return;
+      }
+      const accounts = await eth.request({
         method: 'eth_requestAccounts'
       });
       
@@ -117,10 +129,12 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   };
 
   const switchToSepolia = async () => {
-    if (typeof window === 'undefined' || !(window as any).ethereum) return;
+    if (typeof window === 'undefined') return;
 
     try {
-      await (window as any).ethereum.request({
+      const eth = getInjectedEthereum();
+      if (!eth) return;
+      await eth.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: '0xaa36a7' }], // Sepolia chainId
       });
@@ -128,7 +142,9 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       // Chain not added, try to add it
       if (error.code === 4902) {
         try {
-          await (window as any).ethereum.request({
+          const eth = getInjectedEthereum();
+          if (!eth) return;
+          await eth.request({
             method: 'wallet_addEthereumChain',
             params: [{
               chainId: '0xaa36a7',
@@ -148,6 +164,20 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       }
     }
   };
+
+  // Prefer MetaMask if multiple providers are injected
+  function getInjectedEthereum(): any | null {
+    if (typeof window === 'undefined') return null;
+    const w = window as any;
+    const eth = w.ethereum;
+    if (!eth) return null;
+    if (eth.providers?.length) {
+      // Find MetaMask provider if present
+      const metamask = eth.providers.find((p: any) => p.isMetaMask);
+      return metamask || eth.providers[0];
+    }
+    return eth;
+  }
 
   if (!mounted) {
     return <>{children}</>;

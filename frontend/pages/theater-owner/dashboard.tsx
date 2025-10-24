@@ -8,7 +8,7 @@ const TheaterOwnerContent = dynamic(
   () => import('./index-new'),
   { 
     loading: () => (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 to-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-xl">Loading Theater Dashboard...</div>
       </div>
     ),
@@ -34,7 +34,7 @@ export default function TheaterOwnerDashboard() {
 
   if (!mounted || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 to-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-xl">🔐 Verifying access...</div>
       </div>
     );

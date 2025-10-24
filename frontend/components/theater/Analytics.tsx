@@ -504,7 +504,7 @@ export default function Analytics() {
                   </div>
                   <div className="panel p-6 hover:scale-105 transition transform">
                     <h3 className="text-lg mb-2 text-purple-300">Seats Sold</h3>
-                    <p className="text-5xl font-bold text-cyan-300">{(bookingStats as any).seatsSold?.toString() || '0'}</p>
+                    <p className="text-5xl font-bold text-cyan-300">{Number(selectedShowData.totalSeats)-Number(selectedShowData.availableSeats) || '0'}</p>
                   </div>
                 </div>
 
