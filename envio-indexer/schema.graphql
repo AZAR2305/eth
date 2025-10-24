@@ -1,0 +1,44 @@
+type MovieManager_MovieAdded {
+  id: ID!
+  movieId: BigInt!
+  title: String!
+  owner: String!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: String!
+}
+
+type MovieManager_ShowAdded {
+  id: ID!
+  showId: BigInt!
+  movieId: BigInt!
+  showtime: BigInt!
+  ticketPrice: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: String!
+}
+
+type TicketEscrow_RefundProcessed {
+  id: ID!
+  purchaseId: BigInt!
+  buyer: String!
+  customerAmount: BigInt!
+  theaterOwnerAmount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: String!
+}
+
+type TicketEscrow_TicketPurchased {
+  id: ID!
+  purchaseId: BigInt!
+  showId: BigInt!
+  buyer: String!
+  amount: BigInt!
+  seatNumbers: [BigInt!]!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: String!
+}
+

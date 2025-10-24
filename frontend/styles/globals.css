@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgb(var(--background-end-rgb))
+      )
+      rgb(var(--background-start-rgb));
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-neutral-200/10 border border-white/10 rounded-2xl backdrop-blur;
+  }
+  .accent-heading {
+    @apply text-cyan-300;
+  }
+  .btn-accent {
+    @apply bg-cyan-600 hover:bg-cyan-700 text-white;
+  }
+  .link-accent {
+    @apply text-cyan-300 hover:text-cyan-200;
+  }
+}
