@@ -445,7 +445,7 @@ function PurchaseCard({ purchaseId }: { purchaseId: bigint }) {
                 disabled={isRefunding}
                 className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 py-2 rounded-lg font-semibold"
               >
-                {isRefunding ? '⏳ Processing...' : '💸 Request Refund (50%)'}
+                {isRefunding ? '⏳ Processing...' : '💸 Request Refund before generating Qr (50%)'}
               </button>
             )}
           </div>
