@@ -263,11 +263,12 @@ export default function TheaterOwnerDashboard() {
     }
 
     setUploading(true);
+    const txHashes: string[] = [];
 
     try {
       for (let i = 0; i < validShowtimes.length; i++) {
         const showtime = validShowtimes[i];
-        setUploadStatus(`Adding show ${i + 1}/${validShowtimes.length}...`);
+        setUploadStatus(`⏳ Adding show ${i + 1}/${validShowtimes.length}...`);
 
         const showtimeUnix = Math.floor(new Date(showtime.time).getTime() / 1000);
         const priceInPYUSD = parseUnits(formData.ticketPrice, 6);
@@ -302,23 +303,44 @@ export default function TheaterOwnerDashboard() {
               BigInt(showtime.seats),
             ]
           );
-          await waitForTransaction(tx.hash);
-          console.log('✅ Show confirmed on blockchain!');
+          
+          txHashes.push(tx.hash);
+          console.log(`✅ Show ${i + 1} transaction sent: ${tx.hash}`);
+          
+          // Immediate feedback after MetaMask approval
+          setUploadStatus(`✅ Show ${i + 1}/${validShowtimes.length} transaction approved! Processing...`);
+          
+          // Don't wait for confirmation - process in background
+          waitForTransaction(tx.hash).then(() => {
+            console.log(`✅ Show ${i + 1} confirmed on blockchain!`);
+          }).catch(err => {
+            console.error(`❌ Show ${i + 1} failed:`, err);
+          });
+          
         } catch (err: any) {
           setShowError(err);
           throw err;
         }
       }
 
-      alert(`✅ Added ${validShowtimes.length} shows successfully!`);
-      setStep('movie');
-      setShowtimes([{ time: '', seats: '50' }]);
-      refetchMovies();
+      // Immediate success message after last MetaMask approval
+      setUploadStatus(`🎉 All ${validShowtimes.length} show(s) submitted successfully!`);
+      
+      // Quick success alert and reset
+      setTimeout(() => {
+        alert(`✅ Success! ${validShowtimes.length} show(s) added!\n\nTransactions processing on blockchain.\nView in Analytics in 10-20 seconds.`);
+        setStep('movie');
+        setShowtimes([{ time: '', seats: '50' }]);
+        setUploadStatus('');
+        setUploading(false);
+        
+        // Trigger refresh after short delay
+        setTimeout(() => refetchMovies(), 1500);
+      }, 300);
 
     } catch (error: any) {
       console.error('Error:', error);
       alert(`Failed: ${error.message}`);
-    } finally {
       setUploading(false);
       setUploadStatus('');
     }

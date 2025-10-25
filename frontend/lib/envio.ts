@@ -35,9 +35,6 @@ export async function queryEnvio<T = any>(query: string, variables?: Record<stri
   }
 }
 
-/**
- * Get all movies added by a specific owner
- */
 export async function getMoviesByOwner(ownerAddress: string) {
   const query = `
     query GetMoviesByOwner($owner: String!) {
@@ -93,9 +90,6 @@ export async function getShowsByMovies(movieIds: string[]) {
   }>(query, { movieIds });
 }
 
-/**
- * Get all ticket purchases for a specific show
- */
 export async function getPurchasesByShow(showId: string) {
   const query = `
     query GetPurchasesByShow($showId: numeric!) {
