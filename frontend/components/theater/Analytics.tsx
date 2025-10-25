@@ -4,16 +4,14 @@ import { useWeb3 } from '@/contexts/Web3Context';
 import { readContract } from '@/lib/contract-helpers';
 import { WalletConnect } from '@/components/WalletConnect';
 import { CONTRACT_ADDRESSES } from '@/config/address';
-import { MOVIE_MANAGER_ABI, TICKET_ESCROW_ABI } from '@/lib/contracts';
-import { getTheaterAnalytics, getPurchasesByShow } from '@/lib/envio';
+import { MOVIE_MANAGER_ABI } from '@/lib/contracts';
+import { getTheaterAnalytics, getPurchasesByShow, getShowsByMovies } from '@/lib/envio';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -29,86 +27,18 @@ import {
 
 // Chart colors
 const COLORS = ['#22d3ee', '#06b6d4', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
-interface Show {
-  id: bigint;
-  movieId: bigint;
-  showtime: bigint;
-  ticketPrice: bigint;
-  totalSeats: bigint;
-  availableSeats: bigint;
-  active: boolean;
-}
-interface Movie {
-  id: bigint;
-  title: string;
-  ageRating: bigint;
-  metadataHash: string;
-  isActive: boolean;
-}
 export default function Analytics() {
   const { address, isConnected } = useWeb3();
   const [selectedShow, setSelectedShow] = useState<string>('');
   const [userMovies, setUserMovies] = useState<any[]>([]);
   const [userShows, setUserShows] = useState<any[]>([]);
-  const [purchases, setPurchases] = useState<any[]>([]);
+  const [allPurchases, setAllPurchases] = useState<any[]>([]);
+  const [selectedShowPurchases, setSelectedShowPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [moviesData, setMoviesData] = useState<Movie[] | null>(null);
-  const [showsData, setShowsData] = useState<Show[] | null>(null);
-  const [bookingStats, setBookingStats] = useState<any | null>(null);
+  const [showContractData, setShowContractData] = useState<Map<string, any>>(new Map());
 
-  // Load movies and shows from contract
-  useEffect(() => {
-    if (!isConnected) return;
-    const load = async () => {
-      try {
-        const [movies, shows] = await Promise.all([
-          readContract(
-            CONTRACT_ADDRESSES.movieManager,
-            MOVIE_MANAGER_ABI,
-            'getAllMovies',
-            []
-          ) as Promise<Movie[]>,
-          readContract(
-            CONTRACT_ADDRESSES.movieManager,
-            MOVIE_MANAGER_ABI,
-            'getAllShows',
-            []
-          ) as Promise<Show[]>,
-        ]);
-        setMoviesData(movies);
-        setShowsData(shows);
-      } catch (e) {
-        console.error('Error loading movies/shows:', e);
-      }
-    };
-    load();
-  }, [isConnected]);
-
-  // Get booking stats from contract (not indexed by Envio)
-  useEffect(() => {
-    const fetchStats = async () => {
-      if (!selectedShow) {
-        setBookingStats(null);
-        return;
-      }
-      try {
-        const stats = await readContract(
-          CONTRACT_ADDRESSES.ticketEscrow,
-          TICKET_ESCROW_ABI,
-          'getShowBookingStats',
-          [BigInt(selectedShow)]
-        );
-        setBookingStats(stats);
-      } catch (e) {
-        console.error('Error loading booking stats:', e);
-        setBookingStats(null);
-      }
-    };
-    fetchStats();
-  }, [selectedShow]);
-
-  // Load theater analytics from Envio when address is available
+  // Load all analytics data from Envio + minimal contract data
   useEffect(() => {
     if (!address) {
       setLoading(false);
@@ -119,26 +49,25 @@ export default function Analytics() {
       setLoading(true);
       setError('');
       try {
-  console.log('📊 Loading analytics from Envio for:', address);
-  console.log('   Envio URL:', process.env.NEXT_PUBLIC_ENVIO_GRAPHQL_URL || 'http://localhost:8080/v1/graphql');
+        console.log('📊 Loading analytics from Envio for:', address);
         
-        const data = await getTheaterAnalytics(address);
+        // 1. Fetch all data from Envio
+        const envioData = await getTheaterAnalytics(address);
         
-        console.log('✅ Envio data received:', data);
-        console.log('   Movies:', data.movies);
-        console.log('   Shows from contract:', showsData);
+        console.log('✅ Envio data received:', envioData);
         
-        if (!data.movies || data.movies.length === 0) {
+        if (!envioData.movies || envioData.movies.length === 0) {
           console.log('⚠️ No movies found in Envio for this address');
           setError('No movies found. Create a movie first!');
           setUserMovies([]);
           setUserShows([]);
+          setAllPurchases([]);
           setLoading(false);
           return;
         }
         
-        // Set movies from Envio
-        const movies = data.movies.map((m: any) => ({
+        // 2. Process movies from Envio
+        const movies = envioData.movies.map((m: any) => ({
           id: BigInt(m.movieId),
           title: m.title,
           owner: m.owner,
@@ -148,33 +77,90 @@ export default function Analytics() {
         console.log('✅ Processed movies:', movies);
         setUserMovies(movies);
         
-        // Map shows from contract data (filter by owner's movies)
-        if (showsData && (showsData as any[]).length > 0) {
-          const movieIds = movies.map(m => m.id.toString());
-          console.log('   Movie IDs to filter:', movieIds);
-          
-          const filteredShows = (showsData as any[]).filter(s => {
-            const match = movieIds.includes(s.movieId.toString());
-            console.log(`   Show ${s.id}: movieId=${s.movieId}, match=${match}`);
-            return match;
-          });
-          
-          console.log('✅ Filtered shows:', filteredShows);
-          setUserShows(filteredShows);
-          
-          if (filteredShows.length === 0) {
-            setError('Movies found but no shows. Add shows to your movies!');
-          } else {
-            setError(''); // Clear error if we have shows
-          }
-        } else if (showsData === null) {
-          // Shows data still loading, don't set error yet
-          console.log('⏳ Waiting for shows data to load...');
-          setUserShows([]);
-        } else {
-          console.log('⚠️ No shows found in contract');
-          setUserShows([]);
+        // 3. Get shows from Envio using getShowsByMovies
+        const movieIds = movies.map(m => m.movieId.toString());
+        console.log('🎭 Fetching shows for movie IDs:', movieIds);
+        
+        const showsData = await getShowsByMovies(movieIds);
+        
+        if (!showsData.MovieManager_ShowAdded || showsData.MovieManager_ShowAdded.length === 0) {
+          console.log('⚠️ No shows found in Envio');
           setError('No shows found. Add shows to your movies!');
+          setUserShows([]);
+          setAllPurchases([]);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('✅ Shows from Envio:', showsData.MovieManager_ShowAdded);
+        
+        // 4. Get ALL shows from contract to get totalSeats (not in Envio events)
+        const allContractShows = await readContract(
+          CONTRACT_ADDRESSES.movieManager,
+          MOVIE_MANAGER_ABI,
+          'getAllShows',
+          []
+        ) as any[];
+        
+        console.log('📋 All shows from contract:', allContractShows);
+        
+        // 5. Merge Envio show data with contract totalSeats
+        const validShows = showsData.MovieManager_ShowAdded.map((envioShow: any) => {
+          // Find matching contract show by showId
+          const contractShow = allContractShows.find(
+            cs => cs.id.toString() === envioShow.showId.toString()
+          );
+          
+          if (!contractShow) {
+            console.warn(`⚠️ Show ${envioShow.showId} not found in contract`);
+            return null;
+          }
+          
+          return {
+            id: BigInt(envioShow.showId),
+            showId: BigInt(envioShow.showId),
+            movieId: BigInt(envioShow.movieId),
+            showtime: BigInt(envioShow.showtime),
+            ticketPrice: BigInt(envioShow.ticketPrice),
+            totalSeats: contractShow.totalSeats, // From contract
+            availableSeats: contractShow.availableSeats, // From contract (we'll recalculate)
+            active: contractShow.active,
+          };
+        }).filter(s => s !== null);
+        
+        console.log('✅ Merged shows (Envio + Contract):', validShows);
+        
+        // 5. Process all purchases from Envio
+        const purchases = envioData.purchases.map((p: any) => ({
+          purchaseId: BigInt(p.purchaseId),
+          showId: BigInt(p.showId),
+          buyer: p.buyer,
+          amount: BigInt(p.amount),
+          seatNumbers: Array.isArray(p.seatNumbers) 
+            ? p.seatNumbers.map((s: any) => typeof s === 'string' ? BigInt(s) : s)
+            : [],
+        }));
+        
+        console.log('✅ All purchases from Envio:', purchases);
+        setAllPurchases(purchases);
+        
+        // 6. Calculate available seats per show from purchases
+        const showsWithAvailability = validShows.map(show => {
+          const showPurchases = purchases.filter(p => p.showId.toString() === show.showId.toString());
+          const seatsSold = showPurchases.reduce((sum, p) => sum + p.seatNumbers.length, 0);
+          
+          return {
+            ...show,
+            availableSeats: BigInt(Number(show.totalSeats) - seatsSold),
+            seatsSold: BigInt(seatsSold),
+          };
+        });
+        
+        console.log('✅ Shows with availability:', showsWithAvailability);
+        setUserShows(showsWithAvailability);
+        
+        if (showsWithAvailability.length === 0) {
+          setError('Movies found but no shows. Add shows to your movies!');
         }
       } catch (error) {
         console.error('❌ Error loading Envio analytics:', error);
@@ -185,12 +171,12 @@ export default function Analytics() {
     };
 
     loadAnalytics();
-  }, [address, showsData]);
+  }, [address, isConnected]);
 
   // Load purchases for selected show from Envio
   useEffect(() => {
     if (!selectedShow) {
-      setPurchases([]);
+      setSelectedShowPurchases([]);
       return;
     }
 
@@ -205,13 +191,15 @@ export default function Analytics() {
           showId: BigInt(p.showId),
           buyer: p.buyer,
           amount: BigInt(p.amount),
-          seatNumbers: p.seatNumbers.map((s: string) => BigInt(s)),
+          seatNumbers: Array.isArray(p.seatNumbers)
+            ? p.seatNumbers.map((s: any) => typeof s === 'string' ? BigInt(s) : s)
+            : [],
         }));
         
-        setPurchases(purchaseList);
+        setSelectedShowPurchases(purchaseList);
       } catch (error) {
         console.error('❌ Error loading purchases from Envio:', error);
-        setPurchases([]);
+        setSelectedShowPurchases([]);
       }
     };
 
@@ -221,11 +209,29 @@ export default function Analytics() {
   const selectedShowData = userShows.find(s => s.id.toString() === selectedShow);
   const selectedMovieData = selectedShowData ? userMovies.find(m => m.id.toString() === selectedShowData.movieId.toString()) : null;
 
+  // Calculate booking stats from Envio purchases for selected show
+  const bookingStats = selectedShow && selectedShowPurchases.length > 0 ? {
+    totalBookings: selectedShowPurchases.length,
+    totalRevenue: selectedShowPurchases.reduce((sum, p) => sum + Number(p.amount), 0),
+    seatsSold: selectedShowPurchases.reduce((sum, p) => sum + p.seatNumbers.length, 0),
+  } : selectedShow ? {
+    totalBookings: 0,
+    totalRevenue: 0,
+    seatsSold: 0,
+  } : null;
+
   // Prepare chart data
   const movieRevenueData = userShows.map(show => {
     const movie = userMovies.find(m => m.id.toString() === show.movieId.toString());
-    const seatsSold = Number(show.totalSeats) - Number(show.availableSeats);
-    const revenue = seatsSold * Number(show.ticketPrice) / 1e6;
+    
+    // Use calculated seatsSold from Envio purchases (not contract availableSeats)
+    const seatsSold = show.seatsSold ? Number(show.seatsSold) : 0;
+    
+    // Calculate revenue from actual Envio purchases for this show
+    const showPurchases = allPurchases.filter(p => p.showId.toString() === show.showId.toString());
+    const revenue = showPurchases.reduce((sum, p) => sum + Number(p.amount), 0) / 1e6; // Convert from PYUSD smallest unit
+    
+    console.log(`📊 Show ${show.showId} (${movie?.title}): ${seatsSold} seats sold, ${revenue} PYUSD revenue`);
     
     return {
       name: movie?.title.substring(0, 15) + '...',
@@ -233,19 +239,22 @@ export default function Analytics() {
       revenue: revenue,
       seatsSold: seatsSold,
       totalSeats: Number(show.totalSeats),
-      occupancy: (seatsSold / Number(show.totalSeats)) * 100,
+      occupancy: Number(show.totalSeats) > 0 ? (seatsSold / Number(show.totalSeats)) * 100 : 0,
     };
   });
 
   const showOccupancyData = userShows.map(show => {
     const movie = userMovies.find(m => m.id.toString() === show.movieId.toString());
-    const seatsSold = Number(show.totalSeats) - Number(show.availableSeats);
-    const occupancy = (seatsSold / Number(show.totalSeats)) * 100;
+    
+    // Use calculated seatsSold from Envio purchases
+    const seatsSold = show.seatsSold ? Number(show.seatsSold) : 0;
+    const available = Number(show.totalSeats) - seatsSold;
+    const occupancy = Number(show.totalSeats) > 0 ? (seatsSold / Number(show.totalSeats)) * 100 : 0;
     
     return {
       name: `${movie?.title.substring(0, 10)}... ${new Date(Number(show.showtime) * 1000).toLocaleDateString()}`,
       occupied: seatsSold,
-      available: Number(show.availableSeats),
+      available: available,
       occupancyRate: occupancy,
     };
   });
@@ -511,19 +520,35 @@ export default function Analytics() {
             {selectedShow && bookingStats && (
               <>
                 <div className="grid md:grid-cols-3 gap-6 mb-8">
-                  <div className="panel p-6 hover:scale-105 transition transform">
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="panel p-6 hover:scale-105 transition transform"
+                  >
                     <h3 className="text-lg mb-2 text-blue-300">Total Bookings</h3>
-                    <p className="text-5xl font-bold text-blue-400">{(bookingStats as any).totalBookings?.toString() || '0'}</p>
-                  </div>
-                  <div className="panel p-6 hover:scale-105 transition transform">
+                    <p className="text-5xl font-bold text-blue-400">{bookingStats.totalBookings}</p>
+                    <p className="text-xs text-gray-500 mt-1">From Envio</p>
+                  </motion.div>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="panel p-6 hover:scale-105 transition transform"
+                  >
                     <h3 className="text-lg mb-2 text-green-300">Revenue</h3>
-                    <p className="text-4xl font-bold text-green-400">{(Number((bookingStats as any).totalRevenue || 0) / 1e6).toFixed(2)}</p>
+                    <p className="text-4xl font-bold text-green-400">{(bookingStats.totalRevenue / 1e6).toFixed(2)}</p>
                     <p className="text-sm text-gray-400">PYUSD</p>
-                  </div>
-                  <div className="panel p-6 hover:scale-105 transition transform">
+                  </motion.div>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="panel p-6 hover:scale-105 transition transform"
+                  >
                     <h3 className="text-lg mb-2 text-purple-300">Seats Sold</h3>
-                    <p className="text-5xl font-bold text-gradient">{Number(selectedShowData.totalSeats)-Number(selectedShowData.availableSeats) || '0'}</p>
-                  </div>
+                    <p className="text-5xl font-bold text-gradient">{bookingStats.seatsSold}</p>
+                    <p className="text-xs text-gray-500 mt-1">Calculated from Envio</p>
+                  </motion.div>
                 </div>
 
                 <div className="panel p-6 mb-6">
@@ -549,13 +574,24 @@ export default function Analytics() {
                         <p className="text-xl font-bold">{Number(selectedShowData.totalSeats)} seats</p>
                       </div>
                       <div className="bg-black/40 border border-white/10 rounded-lg p-4">
+                        <p className="text-gray-400 text-sm mb-1">Seats Sold</p>
+                        <p className="text-xl font-bold text-red-400">
+                          {selectedShowData.seatsSold ? Number(selectedShowData.seatsSold) : 0}
+                        </p>
+                        <p className="text-xs text-gray-500">From Envio</p>
+                      </div>
+                      <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                         <p className="text-gray-400 text-sm mb-1">Available</p>
-                        <p className="text-xl font-bold text-green-400">{Number(selectedShowData.availableSeats)} seats</p>
+                        <p className="text-xl font-bold text-green-400">
+                          {Number(selectedShowData.totalSeats) - (selectedShowData.seatsSold ? Number(selectedShowData.seatsSold) : 0)} seats
+                        </p>
                       </div>
                       <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                         <p className="text-gray-400 text-sm mb-1">Occupancy Rate</p>
                         <p className="text-xl font-bold text-gradient">
-                          {(((Number(selectedShowData.totalSeats) - Number(selectedShowData.availableSeats)) / Number(selectedShowData.totalSeats)) * 100).toFixed(1)}%
+                          {Number(selectedShowData.totalSeats) > 0
+                            ? ((selectedShowData.seatsSold ? Number(selectedShowData.seatsSold) : 0) / Number(selectedShowData.totalSeats) * 100).toFixed(1)
+                            : '0.0'}%
                         </p>
                       </div>
                     </div>
@@ -564,13 +600,11 @@ export default function Analytics() {
 
                 <div className="panel p-6">
                   <h3 className="text-2xl font-bold mb-4 flex items-center">
-                    <span className="mr-2">🎫</span> Purchase History
+                    <span className="mr-2">🎫</span> Purchase History (from Envio)
                   </h3>
-                  {loading ? (
-                    <p className="text-center py-4 text-gray-400">Loading purchases from Envio...</p>
-                  ) : purchases.length > 0 ? (
+                  {selectedShowPurchases.length > 0 ? (
                     <div className="space-y-3">
-                      {purchases.map((purchase: any) => (
+                      {selectedShowPurchases.map((purchase: any) => (
                         <div key={purchase.purchaseId.toString()} className="bg-black/40 rounded-lg p-4 border border-white/10 hover:border-cyan-400/50 transition">
                           <div className="flex justify-between items-start mb-2">
                             <div>
@@ -587,9 +621,20 @@ export default function Analytics() {
                           </div>
                           <div className="flex gap-4 text-sm mt-3">
                             <div className="bg-black/40 border border-white/10 rounded px-3 py-1">
-                              <p className="text-gray-400">Seats</p>
+                              <p className="text-gray-400">Seats Booked</p>
                               <p className="font-semibold text-blue-400">
-                                {purchase.seatNumbers?.map((s: bigint) => s.toString()).join(', ') || 'N/A'}
+                                {Array.isArray(purchase.seatNumbers) && purchase.seatNumbers.length > 0
+                                  ? purchase.seatNumbers.map((s: any) => {
+                                      const seatNum = typeof s === 'bigint' ? s.toString() : s;
+                                      return seatNum;
+                                    }).join(', ')
+                                  : 'No seats data'}
+                              </p>
+                            </div>
+                            <div className="bg-black/40 border border-white/10 rounded px-3 py-1">
+                              <p className="text-gray-400">Total Seats</p>
+                              <p className="font-semibold text-purple-400">
+                                {Array.isArray(purchase.seatNumbers) ? purchase.seatNumbers.length : 0}
                               </p>
                             </div>
                           </div>
@@ -600,6 +645,7 @@ export default function Analytics() {
                     <div className="text-center py-12">
                       <div className="text-6xl mb-4">🎭</div>
                       <p className="text-xl text-gray-400">No purchases yet for this show</p>
+                      <p className="text-sm text-gray-500 mt-2">Purchase data indexed by Envio</p>
                     </div>
                   )}
                 </div>

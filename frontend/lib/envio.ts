@@ -65,7 +65,7 @@ export async function getMoviesByOwner(ownerAddress: string) {
  */
 export async function getShowsByMovies(movieIds: string[]) {
   const query = `
-    query GetShowsByMovies($movieIds: [BigInt!]!) {
+    query GetShowsByMovies($movieIds: [numeric!]!) {
       MovieManager_ShowAdded(
         where: { movieId: { _in: $movieIds } }
         order_by: { showtime: desc }
@@ -160,7 +160,7 @@ export async function getRefunds(purchaseIds?: string[]) {
     : '';
 
   const query = `
-    query GetRefunds${purchaseIds ? '($purchaseIds: [BigInt!]!)' : ''} {
+    query GetRefunds${purchaseIds ? '($purchaseIds: [numeric!]!)' : ''} {
       TicketEscrow_RefundProcessed(
         ${whereClause}
         order_by: { purchaseId: desc }
