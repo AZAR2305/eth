@@ -7,6 +7,7 @@ import {
   TicketEscrow_RefundProcessed,
   TicketEscrow_TicketPurchased
 } from "../generated";
+
 MovieManager.MovieAdded.handler(async ({ event, context }) => {
   const entity: MovieManager_MovieAdded = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
