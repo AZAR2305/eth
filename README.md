@@ -213,7 +213,7 @@ MIT License - see LICENSE file for details
 ## 🔗 Links
 
 - **GitHub**: https://github.com/AZAR2305/eth
-- **Deployed App**: [Coming soon]
+- **Deployed App**: https://eth-moviex.vercel.app/
 - **Demo Video**: [Coming soon]
 
 ## 🙏 Acknowledgments

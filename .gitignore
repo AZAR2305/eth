@@ -82,7 +82,7 @@ envio-indexer/node_modules
 *.swp
 *.swo
 *~
-*.md
+
 # OS
 .DS_Store
 Thumbs.db
