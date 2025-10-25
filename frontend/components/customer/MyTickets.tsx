@@ -436,24 +436,41 @@ function PurchaseCard({ purchaseId, highlight = false }: { purchaseId: bigint; h
         // Calculate if QR code is currently visible
         const currentTime = Math.floor(Date.now() / 1000);
         const showtime = Number(showData?.showtime || 0);
-  const threeHoursInSeconds = 3 * 60 * 60;
-  const qrAccessWindow = showtime - threeHoursInSeconds;
-  const qrIsVisible = issued && !isIssuing && currentTime >= qrAccessWindow;
+        const threeHoursInSeconds = 3 * 60 * 60;
+        const thirtyMinutesInSeconds = 30 * 60;
+        const qrAccessWindow = showtime - threeHoursInSeconds;
+        const ticketIssueWindow = showtime - thirtyMinutesInSeconds; // Ticket can be issued 30 mins before
+        const qrIsVisible = issued && !isIssuing && currentTime >= qrAccessWindow;
+        const canIssueTicket = currentTime >= ticketIssueWindow; // Check if within 30 min window
 
         // Don't show buttons if refunded
         if (isRefunded) return null;
 
         return (
           <div className="space-y-2">
-            {/* Issue Ticket Button - Only show if not issued */}
+            {/* Issue Ticket Button - Only show if not issued AND within 30 mins of showtime */}
             {!issued && !isIssuing && purchaseData.amount > 0 && (
-              <button
-                onClick={handleIssueTicket}
-                disabled={isIssuing}
-                className="w-full btn-accent disabled:bg-gray-600 py-2 rounded-lg font-semibold"
-              >
-                {isIssuing ? '⏳ Generating Ticket...' : '📲 Issue Ticket (Get QR Code)'}
-              </button>
+              <>
+                {!canIssueTicket ? (
+                  <div className="w-full bg-yellow-500/20 border border-yellow-500 rounded-lg p-3 text-center">
+                    <p className="font-bold text-sm">🔒 Ticket Release Locked</p>
+                    <p className="text-xs mt-1">
+                      Ticket will be available {Math.ceil((ticketIssueWindow - currentTime) / 60)} minutes before showtime
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Release time: {new Date(ticketIssueWindow * 1000).toLocaleString()}
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleIssueTicket}
+                    disabled={isIssuing}
+                    className="w-full btn-accent disabled:bg-gray-600 py-2 rounded-lg font-semibold"
+                  >
+                    {isIssuing ? '⏳ Generating Ticket...' : '📲 Issue Ticket (Get QR Code)'}
+                  </button>
+                )}
+              </>
             )}
             
             {/* Refund Button - Hide ONLY when QR code is visible */}
