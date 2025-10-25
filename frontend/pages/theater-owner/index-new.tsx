@@ -2,6 +2,7 @@ import { WalletConnect } from '@/components/WalletConnect';
 import { CONTRACT_ADDRESSES } from '@/config/address';
 import { MOVIE_MANAGER_ABI } from '@/lib/contracts';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ipfsService } from '@/lib/ipfs-pinata';
 import { useWeb3 } from '@/contexts/Web3Context';
@@ -387,12 +388,12 @@ export default function TheaterOwnerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen">
       <div className="absolute inset-0 pointer-events-none"></div>
 
       <nav className="relative z-10 p-4 md:p-6 flex flex-col md:flex-row justify-between items-center border-b border-white/10 gap-4">
         <Link href="/">
-          <h1 className="text-xl md:text-2xl font-bold cursor-pointer text-cyan-300 hover:scale-105 transition">🎬 MOVIEX Theater</h1>
+          <h1 className="text-xl md:text-2xl font-bold cursor-pointer text-gradient hover:scale-105 transition">🎬 MOVIEX Theater</h1>
         </Link>
         <div className="flex gap-2 md:gap-4 items-center flex-wrap justify-center">
           <Link href="/theater-owner/analytics" className="link-accent text-sm md:text-base">
@@ -406,7 +407,7 @@ export default function TheaterOwnerDashboard() {
       </nav>
 
       <main className="relative z-10 container mx-auto px-4 md:px-6 py-6 md:py-8 max-w-4xl">
-        <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-cyan-300">Theater Owner Dashboard</h2>
+  <motion.h2 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-gradient">Theater Owner Dashboard</motion.h2>
 
         {/* Step Indicator */}
         <div className="flex flex-col md:flex-row gap-2 md:gap-4 mb-6 md:mb-8">
@@ -454,7 +455,7 @@ export default function TheaterOwnerDashboard() {
         {step === 'movie' ? (
           /* ADD MOVIE FORM */
           <div className="panel p-8">
-            <h3 className="text-2xl font-bold mb-6 text-cyan-300">Add New Movie</h3>
+            <h3 className="text-2xl font-bold mb-6 text-gradient">Add New Movie</h3>
 
             <form onSubmit={handleAddMovie} className="space-y-4">
               {/* Poster Image */}
@@ -538,7 +539,7 @@ export default function TheaterOwnerDashboard() {
         ) : (
           /* ADD SHOWS FORM */
           <div className="panel p-8">
-            <h3 className="text-2xl font-bold mb-6 text-cyan-300">Add Showtimes</h3>
+            <h3 className="text-2xl font-bold mb-6 text-gradient">Add Showtimes</h3>
 
             {/* Select Movie */}
             <div className="mb-6">

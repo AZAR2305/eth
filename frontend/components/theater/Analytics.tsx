@@ -8,6 +8,7 @@ import { MOVIE_MANAGER_ABI, TICKET_ESCROW_ABI } from '@/lib/contracts';
 import { getTheaterAnalytics, getPurchasesByShow } from '@/lib/envio';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   BarChart,
   Bar,
@@ -166,6 +167,10 @@ export default function Analytics() {
           } else {
             setError(''); // Clear error if we have shows
           }
+        } else if (showsData === null) {
+          // Shows data still loading, don't set error yet
+          console.log('⏳ Waiting for shows data to load...');
+          setUserShows([]);
         } else {
           console.log('⚠️ No shows found in contract');
           setUserShows([]);
@@ -267,66 +272,79 @@ export default function Analytics() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen">
       <nav className="p-6 flex justify-between items-center border-b border-white/10 bg-black/50 backdrop-blur-md">
         <Link href="/theater-owner">
-          <h1 className="text-2xl font-bold cursor-pointer text-cyan-300 hover:scale-105 transition">🎬 MOVIEX Theater</h1>
+          <h1 className="text-2xl font-bold cursor-pointer text-gradient hover:scale-105 transition">🎬 MOVIEX Theater</h1>
         </Link>
         <WalletConnect />
       </nav>
 
       <main className="container mx-auto px-4 sm:px-6 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h2 className="text-5xl font-bold mb-2 accent-heading">📊 Theater Analytics</h2>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h2 className="text-5xl font-bold mb-2 text-gradient">📊 Theater Analytics</h2>
           <p className="text-gray-400 text-lg">Real-time insights powered by Envio</p>
-        </div>
+        </motion.div>
 
         {loading && (
           <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-400 mb-4"></div>
-            <p className="text-xl text-gray-400">Loading analytics from Envio...</p>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              className="inline-block rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-400 mb-4"
+            />
+            <motion.p
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-xl text-gradient"
+            >
+              Loading analytics from Envio...
+            </motion.p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="panel border border-red-500/50 p-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="panel border border-red-500/50 p-8 text-center"
+          >
             <p className="text-2xl mb-2">⚠️ {error}</p>
             <Link href="/theater-owner">
               <button className="mt-4 btn-accent">Go to Dashboard</button>
             </Link>
-          </div>
+          </motion.div>
         )}
 
         {!loading && !error && userMovies.length > 0 && (
           <>
             {/* Overview Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-              <div className="panel p-6 hover:scale-105 transition transform">
-                <div className="text-3xl mb-2">🎬</div>
-                <h3 className="text-sm text-gray-300 mb-1">Total Movies</h3>
-                <p className="text-4xl font-bold text-cyan-300">{totalStats.totalMovies}</p>
-              </div>
-              <div className="panel p-6 hover:scale-105 transition transform">
-                <div className="text-3xl mb-2">🎭</div>
-                <h3 className="text-sm text-gray-300 mb-1">Total Shows</h3>
-                <p className="text-4xl font-bold text-cyan-300">{totalStats.totalShows}</p>
-              </div>
-              <div className="panel p-6 hover:scale-105 transition transform">
-                <div className="text-3xl mb-2">💰</div>
-                <h3 className="text-sm text-gray-300 mb-1">Total Revenue</h3>
-                <p className="text-3xl font-bold text-green-400">{totalStats.totalRevenue.toFixed(2)}</p>
-                <p className="text-xs text-gray-400">PYUSD</p>
-              </div>
-              <div className="panel p-6 hover:scale-105 transition transform">
-                <div className="text-3xl mb-2">🪑</div>
-                <h3 className="text-sm text-gray-300 mb-1">Seats Sold</h3>
-                <p className="text-4xl font-bold text-cyan-300">{totalStats.totalSeatsSold}</p>
-              </div>
-              <div className="panel p-6 hover:scale-105 transition transform">
-                <div className="text-3xl mb-2">📈</div>
-                <h3 className="text-sm text-gray-300 mb-1">Avg Occupancy</h3>
-                <p className="text-4xl font-bold text-cyan-300">{totalStats.avgOccupancy.toFixed(0)}%</p>
-              </div>
+              {[
+                { icon: '🎬', label: 'Total Movies', value: totalStats.totalMovies, color: 'text-gradient' },
+                { icon: '🎭', label: 'Total Shows', value: totalStats.totalShows, color: 'text-gradient' },
+                { icon: '💰', label: 'Total Revenue', value: totalStats.totalRevenue.toFixed(2), color: 'text-gradient', suffix: ' PYUSD' },
+                { icon: '🪑', label: 'Seats Sold', value: totalStats.totalSeatsSold, color: 'text-gradient' },
+                { icon: '📈', label: 'Avg Occupancy', value: `${totalStats.avgOccupancy.toFixed(0)}%`, color: 'text-gradient' }
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  className="panel p-6"
+                >
+                  <div className="text-3xl mb-2">{stat.icon}</div>
+                  <h3 className="text-sm text-gray-300 mb-1">{stat.label}</h3>
+                  <p className={`text-4xl font-bold ${stat.color}`}>{stat.value}</p>
+                  {stat.suffix && <p className="text-xs text-gray-400">{stat.suffix}</p>}
+                </motion.div>
+              ))}
             </div>
 
             {/* Revenue Chart */}
@@ -504,7 +522,7 @@ export default function Analytics() {
                   </div>
                   <div className="panel p-6 hover:scale-105 transition transform">
                     <h3 className="text-lg mb-2 text-purple-300">Seats Sold</h3>
-                    <p className="text-5xl font-bold text-cyan-300">{Number(selectedShowData.totalSeats)-Number(selectedShowData.availableSeats) || '0'}</p>
+                    <p className="text-5xl font-bold text-gradient">{Number(selectedShowData.totalSeats)-Number(selectedShowData.availableSeats) || '0'}</p>
                   </div>
                 </div>
 
@@ -536,7 +554,7 @@ export default function Analytics() {
                       </div>
                       <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                         <p className="text-gray-400 text-sm mb-1">Occupancy Rate</p>
-                        <p className="text-xl font-bold text-cyan-300">
+                        <p className="text-xl font-bold text-gradient">
                           {(((Number(selectedShowData.totalSeats) - Number(selectedShowData.availableSeats)) / Number(selectedShowData.totalSeats)) * 100).toFixed(1)}%
                         </p>
                       </div>
@@ -557,7 +575,7 @@ export default function Analytics() {
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <p className="text-sm text-gray-400">Purchase #{purchase.purchaseId.toString()}</p>
-                              <p className="text-lg font-semibold text-cyan-300">
+                              <p className="text-lg font-semibold text-gradient">
                                 {purchase.buyer.slice(0, 6)}...{purchase.buyer.slice(-4)}
                               </p>
                             </div>

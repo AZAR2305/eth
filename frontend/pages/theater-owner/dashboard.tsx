@@ -8,7 +8,7 @@ const TheaterOwnerContent = dynamic(
   () => import('./index-new'),
   { 
     loading: () => (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen  items-center justify-center">
         <div className="text-xl">Loading Theater Dashboard...</div>
       </div>
     ),

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { WalletConnect } from '@/components/WalletConnect';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function ScanTicketContent() {
   const { address, isConnected } = useWeb3();
@@ -37,20 +38,20 @@ export default function ScanTicketContent() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold mb-6 accent-heading">Connect Your Wallet</h2>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+          <h2 className="text-4xl font-bold mb-6 text-gradient">Connect Your Wallet</h2>
           <WalletConnect />
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <nav className="p-6 flex justify-between items-center border-b border-white/10 bg-black/50 backdrop-blur-md">
+      <nav className="p-6 flex justify-between items-center border-b border-white/10 bg-black/50 backdrop-blur-md panel">
         <Link href="/theater-owner">
-          <h1 className="text-2xl font-bold cursor-pointer text-cyan-300 hover:scale-105 transition">🎬 MOVIEX Theater</h1>
+          <h1 className="text-2xl font-bold cursor-pointer text-gradient hover:scale-105 transition">🎬 MOVIEX Theater</h1>
         </Link>
         <div className="flex gap-4 items-center">
           <Link href="/theater-owner" className="link-accent">Dashboard</Link>
@@ -60,7 +61,7 @@ export default function ScanTicketContent() {
       </nav>
 
       <main className="container mx-auto px-6 py-8 max-w-2xl">
-        <h2 className="text-4xl font-bold mb-8 text-center accent-heading">🎫 Validate Ticket</h2>
+        <motion.h2 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="text-4xl font-bold mb-8 text-center text-gradient">🎫 Validate Ticket</motion.h2>
 
         {!ticketData && (
           <div className="panel p-8">

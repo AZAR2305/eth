@@ -2,35 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base Styles */
 @layer base {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --mindaro: #d9ed92;
+    --light-green: #99d98c;
+    --emerald: #76c893;
+    --keppel: #52b69a;
+    --verdigris: #34a0a4;
+    --bondi-blue: #168aad;
+    --cerulean: #1a759f;
+    --lapis-lazuli: #1e6091;
+    --indigo-dye: #184e77;
+    --foreground: #eeeeee;
+    --background: #000000;
   }
 
   body {
-    color: rgb(var(--foreground-rgb));
-    background: linear-gradient(
-        to bottom,
-        transparent,
-        rgb(var(--background-end-rgb))
-      )
-      rgb(var(--background-start-rgb));
+    color: var(--foreground);
+    background: linear-gradient(to bottom, var(--background), var(--background));
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Film Grain Overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: url('/film-grain.png') repeat;
+    opacity: 0.05;
+    z-index: 50;
   }
 }
 
+/* Components */
 @layer components {
+  /* Panel Cards */
   .panel {
-    @apply bg-neutral-200/10 border border-white/10 rounded-2xl backdrop-blur;
+    @apply bg-neutral-900/30 border border-white/10 rounded-2xl backdrop-blur-md transition-all;
   }
-  .accent-heading {
-    @apply text-cyan-300;
-  }
+
+  /* Button Accent Gradient */
   .btn-accent {
-    @apply bg-cyan-600 hover:bg-cyan-700 text-white;
+    @apply rounded-xl font-bold px-6 py-3 text-black;
+    background: linear-gradient(
+      90deg,
+      var(--bondi-blue),
+      var(--verdigris),
+      var(--mindaro)
+    );
+    transition: all 0.3s ease;
   }
-  .link-accent {
-    @apply text-cyan-300 hover:text-cyan-200;
+
+  .btn-accent:hover {
+    opacity: 0.9;
+    transform: scale(1.03);
+  }
+
+  /* Portal Card Hover */
+  .panel:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(52, 160, 164, 0.4);
+  }
+
+  /* Accent Headings */
+  .accent-heading {
+    color: var(--bondi-blue);
+  }
+
+  /* CTA Hover Glow */
+  .cta-glow:hover {
+    box-shadow: 0 0 20px var(--verdigris);
+  }
+
+  /* Hero Light Beam Animation */
+  .hero-light {
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--indigo-dye)/40, transparent);
+    transform: translateX(-50%);
+    animation: pulse 4s ease-in-out infinite;
+    z-index: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: translateX(-50%) scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translateX(-50%) scale(1.1);
+      opacity: 0.5;
+    }
+  }
+}
+
+/* Utilities */
+@layer utilities {
+  .bg-film {
+    background: url('/film-grain.png') repeat;
+  }
+
+  .text-gradient {
+    background: linear-gradient(
+      to right,
+      var(--bondi-blue),
+      var(--verdigris),
+      var(--mindaro)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }

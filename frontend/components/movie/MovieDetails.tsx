@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { readContract, writeContract, waitForTransaction } from '@/lib/contract-helpers';
+import { motion } from 'framer-motion';
 
 interface Show {
   id: bigint;
@@ -241,6 +242,14 @@ export default function MovieDetails() {
         }
       }
 
+      // Snapshot existing purchases to identify the new one after tx
+      const beforeIds = await readContract(
+        CONTRACT_ADDRESSES.ticketEscrow,
+        TICKET_ESCROW_ABI,
+        'getUserPurchases',
+        [address]
+      ) as bigint[];
+
       const buyTx = await writeContract(
         CONTRACT_ADDRESSES.ticketEscrow,
         TICKET_ESCROW_ABI,
@@ -248,8 +257,34 @@ export default function MovieDetails() {
         [BigInt(showId as string), Array.from(selectedSeats).map(BigInt)]
       );
       await waitForTransaction(buyTx.hash);
+
+      // Poll quickly for the new purchase ID so the next page can focus it
+      let newPurchaseId: bigint | null = null;
+  const deadline = Date.now() + 5_000; // up to 5s (best-effort)
+      while (Date.now() < deadline) {
+        try {
+          const afterIds = await readContract(
+            CONTRACT_ADDRESSES.ticketEscrow,
+            TICKET_ESCROW_ABI,
+            'getUserPurchases',
+            [address]
+          ) as bigint[];
+          const diff = afterIds.filter(id => !beforeIds.some(b => b === id));
+          if (diff.length > 0) {
+            // Pick the newest (last) by numeric value
+            newPurchaseId = diff.sort((a,b) => Number(a - b)).pop() || null;
+            break;
+          }
+        } catch {}
+        await new Promise(res => setTimeout(res, 800));
+      }
+
       alert('🎉 Ticket purchased successfully!');
-      router.push('/customer/tickets');
+      if (newPurchaseId) {
+        router.push(`/customer/tickets?purchaseId=${newPurchaseId.toString()}`);
+      } else {
+        router.push('/customer/tickets');
+      }
     } catch (error: any) {
       console.error('Error buying tickets:', error);
       alert(`Failed to buy tickets: ${error.message}`);
@@ -300,43 +335,57 @@ export default function MovieDetails() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold mb-6">Connect Your Wallet</h2>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <h2 className="text-4xl font-bold mb-6 text-gradient">Connect Your Wallet</h2>
           <WalletConnect />
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   if (showLoading || movieLoading || !show || !movie) {
     return (
-      <div className="min-h-screen bg-black text-white p-8">
-        <nav className="p-6 flex justify-between items-center border-b border-white/10 mb-8">
+      <div className="min-h-screen p-8">
+        <nav className="p-6 flex justify-between items-center border-b border-white/10 mb-8 panel">
           <Link href="/customer">
-            <h1 className="text-2xl font-bold cursor-pointer text-cyan-300">🎬 MOVIEX</h1>
+            <h1 className="text-2xl font-bold cursor-pointer text-gradient hover:scale-105 transition">🎬 MOVIEX</h1>
           </Link>
           <WalletConnect />
         </nav>
-        <div className="text-center text-2xl">
-          {showLoading || movieLoading ? '⏳ Loading show details from blockchain...' : '❌ Show not found'}
-        </div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center text-2xl"
+        >
+          <p className="text-gradient">
+            {showLoading || movieLoading ? '⏳ Loading show details from blockchain...' : '❌ Show not found'}
+          </p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <nav className="p-6 flex justify-between items-center border-b border-white/10">
+    <div className="min-h-screen">
+      <nav className="p-6 flex justify-between items-center border-b border-white/10 panel">
         <Link href="/customer">
-          <h1 className="text-2xl font-bold cursor-pointer text-cyan-300">🎬 MOVIEX</h1>
+          <h1 className="text-2xl font-bold cursor-pointer text-gradient hover:scale-105 transition">🎬 MOVIEX</h1>
         </Link>
         <WalletConnect />
       </nav>
 
       <main className="container mx-auto px-6 py-8 max-w-4xl">
-        <div className="panel p-8 mb-6">
-          <h1 className="text-4xl font-bold mb-4 text-cyan-300">{movie.title}</h1>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="panel p-8 mb-6"
+        >
+          <h1 className="text-4xl font-bold mb-4 text-gradient">{movie.title}</h1>
           <div className="space-y-2 text-lg">
             <p>🕐 <strong>Showtime:</strong> {new Date(Number(show.showtime) * 1000).toLocaleString()}</p>
             <p>💰 <strong>Price:</strong> {Number(show.ticketPrice) / 1e6} PYUSD per seat</p>
@@ -345,17 +394,26 @@ export default function MovieDetails() {
               <p className="text-yellow-400">🔞 <strong>Age Restriction:</strong> {movie.ageRestriction}+</p>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {needsVerification && (
-          <div className="bg-red-500/20 border border-red-500 rounded-xl p-6 mb-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-red-500/20 border border-red-500 rounded-xl p-6 mb-6"
+          >
             <p className="text-xl font-bold mb-2">⚠️ Age Verification Required</p>
             <p>This movie requires age verification. Please verify your age first.</p>
-          </div>
+          </motion.div>
         )}
 
-        <div className="panel p-8 mb-6">
-          <h2 className="text-2xl font-bold mb-6 text-center text-cyan-300">Select Your Seats</h2>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="panel p-8 mb-6"
+        >
+          <h2 className="text-2xl font-bold mb-6 text-center text-gradient">Select Your Seats</h2>
           <div className="space-y-2 mb-6">
             {renderSeats()}
           </div>
@@ -373,19 +431,24 @@ export default function MovieDetails() {
               <span>Booked</span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="panel p-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="panel p-6"
+        >
           <div className="mb-4 pb-4 border-b border-white/20">
             <p className="text-sm text-gray-400">Your PYUSD Balance</p>
-            <p className="text-xl font-bold text-green-400">
+            <p className="text-xl font-bold text-gradient">
               {pyusdBalance ? `${(Number(pyusdBalance) / 1e6).toFixed(2)} PYUSD` : 'Loading...'}
             </p>
           </div>
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-lg">Selected Seats: <strong>{selectedSeats.size}</strong></p>
-              <p className="text-2xl font-bold">
+              <p className="text-lg">Selected Seats: <strong className="text-gradient">{selectedSeats.size}</strong></p>
+              <p className="text-2xl font-bold text-gradient">
                 Total Cost: {selectedSeats.size > 0 ? (Number(show.ticketPrice) * selectedSeats.size / 1e6).toFixed(2) : '0'} PYUSD
               </p>
               {selectedSeats.size > 0 && pyusdBalance && (
@@ -394,15 +457,17 @@ export default function MovieDetails() {
                 </p>
               )}
             </div>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleBuyTicket}
               disabled={purchasing || approving || selectedSeats.size === 0}
               className="btn-accent disabled:bg-gray-600 px-8 py-4 rounded-lg font-bold text-xl"
             >
               {approving ? '⏳ Approving PYUSD...' : purchasing ? '⏳ Processing...' : '🎟️ Buy Tickets'}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );

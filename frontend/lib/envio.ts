@@ -98,7 +98,7 @@ export async function getShowsByMovies(movieIds: string[]) {
  */
 export async function getPurchasesByShow(showId: string) {
   const query = `
-    query GetPurchasesByShow($showId: BigInt!) {
+    query GetPurchasesByShow($showId: numeric!) {
       TicketEscrow_TicketPurchased(
         where: { showId: { _eq: $showId } }
         order_by: { purchaseId: desc }

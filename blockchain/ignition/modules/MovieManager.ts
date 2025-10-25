@@ -19,15 +19,15 @@ export default buildModule("MovieManagerModule", (m) => {
     TICKET_NFT_ADDRESS,
   ]);
 
-  // Grant DEFAULT_ADMIN_ROLE to TicketEscrow
+  
   const DEFAULT_ADMIN_ROLE = m.staticCall(movieManager, "DEFAULT_ADMIN_ROLE");
   m.call(movieManager, "grantRole", [DEFAULT_ADMIN_ROLE, ticketEscrow]);
 
-  // Register deployer as theater owner
+ 
   const deployer = m.getAccount(0);
   m.call(movieManager, "registerTheaterOwner", [deployer]);
 
-  // Set new TicketEscrow as escrow contract on TicketNFT
+ 
   const ticketNFT = m.contractAt("TicketNFT", TICKET_NFT_ADDRESS);
   m.call(ticketNFT, "setEscrowContract", [ticketEscrow]);
 

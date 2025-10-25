@@ -1,15 +1,12 @@
-/*
- * Please refer to https://docs.envio.dev for a thorough guide on all Envio indexer features
- */
+
 import {
   MovieManager,
   MovieManager_MovieAdded,
   MovieManager_ShowAdded,
   TicketEscrow,
   TicketEscrow_RefundProcessed,
-  TicketEscrow_TicketPurchased,
+  TicketEscrow_TicketPurchased
 } from "../generated";
-
 MovieManager.MovieAdded.handler(async ({ event, context }) => {
   const entity: MovieManager_MovieAdded = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function TheaterOwnerLogin() {
   const [password, setPassword] = useState('');
@@ -34,14 +35,14 @@ export default function TheaterOwnerLogin() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="relative z-10 max-w-md w-full">
         <div className="text-center mb-8">
           <Link href="/">
             <div className="inline-block cursor-pointer hover:scale-105 transition">
-              <h1 className="text-6xl font-bold mb-2 text-cyan-300">
+              <motion.h1 initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="text-6xl font-bold mb-2 text-gradient">
                 🎬 MOVIEX
-              </h1>
+              </motion.h1>
               <p className="text-sm text-gray-400">OnChain Cinema Platform</p>
             </div>
           </Link>

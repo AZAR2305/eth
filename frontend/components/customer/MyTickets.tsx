@@ -1,6 +1,8 @@
 'use client';
 
 import { WalletConnect } from '@/components/WalletConnect';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/router';
 import { CONTRACT_ADDRESSES } from '@/config/address';
 import { TICKET_ESCROW_ABI, TICKET_NFT_ABI, MOVIE_MANAGER_ABI } from '@/lib/contracts';
 import Link from 'next/link';
@@ -27,9 +29,11 @@ interface Purchase {
 
 export default function MyTickets() {
   const { address, isConnected } = useWeb3();
+  const router = useRouter();
   const [purchases, setPurchases] = useState<{ id: bigint; data: Purchase }[]>([]);
   const [purchaseIds, setPurchaseIds] = useState<bigint[] | null>(null);
   const [ticketIds, setTicketIds] = useState<bigint[] | null>(null);
+  const highlightPurchaseId = typeof router.query.purchaseId === 'string' ? router.query.purchaseId : null;
 
   useEffect(() => {
     if (!address) return;
@@ -49,14 +53,19 @@ export default function MyTickets() {
             [address]
           ) as Promise<bigint[]>,
         ]);
-        setPurchaseIds(pIds);
+        // Reorder to bring highlighted purchase to the top if provided via query
+        let ordered = pIds;
+        if (highlightPurchaseId) {
+          ordered = [...pIds].sort((a, b) => (a.toString() === highlightPurchaseId ? -1 : b.toString() === highlightPurchaseId ? 1 : 0));
+        }
+        setPurchaseIds(ordered);
         setTicketIds(tIds);
       } catch (e) {
         console.error('Error loading user tickets/purchases:', e);
       }
     };
     load();
-  }, [address]);
+  }, [address, highlightPurchaseId]);
 
   useEffect(() => {
     async function fetchPurchases() {
@@ -73,39 +82,48 @@ export default function MyTickets() {
     fetchPurchases();
   }, [purchaseIds]);
 
+  // Scroll to the highlighted purchase if provided in query
+  useEffect(() => {
+    if (!highlightPurchaseId) return;
+    const el = document.getElementById(`purchase-${highlightPurchaseId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlightPurchaseId, purchaseIds]);
+
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold mb-6">Connect Your Wallet</h2>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+          <h2 className="text-4xl font-bold mb-6 text-gradient">Connect Your Wallet</h2>
           <WalletConnect />
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <nav className="p-6 flex justify-between items-center border-b border-white/10">
+    <div className="min-h-screen">
+      <nav className="p-6 flex justify-between items-center border-b border-white/10 panel">
         <Link href="/customer">
-          <h1 className="text-2xl font-bold cursor-pointer">🎬 MOVIEX</h1>
+          <h1 className="text-2xl font-bold cursor-pointer text-gradient hover:scale-105 transition">🎬 MOVIEX</h1>
         </Link>
         <WalletConnect />
       </nav>
 
       <main className="container mx-auto px-6 py-8">
-  <h2 className="text-4xl font-bold mb-8 text-cyan-300">🎫 My Tickets</h2>
+        <motion.h2 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="text-4xl font-bold mb-8 text-gradient">🎫 My Tickets</motion.h2>
 
         <div className="mb-8">
-          <h3 className="text-2xl font-bold mb-4 text-cyan-300">NFT Tickets</h3>
+          <motion.h3 initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold mb-4 text-gradient">NFT Tickets</motion.h3>
           {ticketIds && (ticketIds as bigint[]).length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(ticketIds as bigint[]).map((ticketId) => (
+              {(ticketIds as bigint[]).map((ticketId, idx) => (
                 <Link key={ticketId.toString()} href={`/ticket/${ticketId}`}>
-                  <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 hover:border-violet-400 cursor-pointer transition">
+                  <motion.div whileHover={{ scale: 1.03 }} transition={{ type: 'spring' }} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 hover:border-violet-400 cursor-pointer transition">
                     <p className="text-xl font-bold">Ticket #{ticketId.toString()}</p>
                     <p className="text-sm text-gray-300 mt-2">Click to view details</p>
-                  </div>
+                  </motion.div>
                 </Link>
               ))}
             </div>
@@ -115,11 +133,11 @@ export default function MyTickets() {
         </div>
 
         <div>
-          <h3 className="text-2xl font-bold mb-4 text-violet-300">Pending Purchases</h3>
+          <motion.h3 initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold mb-4 text-gradient">Pending Purchases</motion.h3>
           {purchaseIds && (purchaseIds as bigint[]).length > 0 ? (
             <div className="space-y-4">
               {(purchaseIds as bigint[]).map((purchaseId) => (
-                <PurchaseCard key={purchaseId.toString()} purchaseId={purchaseId} />
+                <PurchaseCard key={purchaseId.toString()} purchaseId={purchaseId} highlight={highlightPurchaseId === purchaseId.toString()} />
               ))}
             </div>
           ) : (
@@ -131,7 +149,7 @@ export default function MyTickets() {
   );
 }
 
-function PurchaseCard({ purchaseId }: { purchaseId: bigint }) {
+function PurchaseCard({ purchaseId, highlight = false }: { purchaseId: bigint; highlight?: boolean }) {
   const { address } = useWeb3();
   const [isRefunding, setIsRefunding] = useState(false);
   const [isIssuing, setIsIssuing] = useState(false);
@@ -362,10 +380,10 @@ function PurchaseCard({ purchaseId }: { purchaseId: bigint }) {
   const isRefunded = Number(purchaseData.amount) === 0;
 
   return (
-  <div className={`panel p-6 ${isRefunded ? 'border-red-500/70' : issued ? 'border-green-500/70' : 'border-yellow-500/70'}`}>
+  <motion.div id={`purchase-${purchaseId.toString()}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className={`panel p-6 ${highlight ? 'ring-2 ring-cyan-400' : ''} ${isRefunded ? 'border-red-500/70' : issued ? 'border-green-500/70' : 'border-yellow-500/70'}`}>
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h4 className="text-xl font-bold text-cyan-300">{movieData.title}</h4>
+          <h4 className="text-xl font-bold text-gradient">{movieData.title}</h4>
           <p className="text-sm text-gray-400">Purchase #{purchaseId.toString()}</p>
         </div>
         <p className="text-2xl font-bold">{(Number(purchaseData.amount) / 1e6).toFixed(2)} PYUSD</p>
@@ -465,6 +483,6 @@ function PurchaseCard({ purchaseId }: { purchaseId: bigint }) {
           <p className="text-sm">Uploading to IPFS and minting NFT</p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -9,6 +9,7 @@ import { readContract } from '@/lib/contract-helpers';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { motion } from 'framer-motion';
 
 interface Ticket {
   movieId: bigint;
@@ -96,11 +97,11 @@ export default function TicketDetails() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold mb-6">Connect Your Wallet</h2>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+          <h2 className="text-4xl font-bold mb-6 text-gradient">Connect Your Wallet</h2>
           <WalletConnect />
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -112,20 +113,20 @@ export default function TicketDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <nav className="p-6 flex justify-between items-center border-b border-white/10">
+    <div className="min-h-screen">
+      <nav className="p-6 flex justify-between items-center border-b border-white/10 panel">
         <Link href="/customer/tickets">
-          <h1 className="text-2xl font-bold cursor-pointer text-cyan-300">🎬 MOVIEX</h1>
+          <h1 className="text-2xl font-bold cursor-pointer text-gradient">🎬 MOVIEX</h1>
         </Link>
         <WalletConnect />
       </nav>
 
       <main className="container mx-auto px-6 py-8 max-w-2xl">
-        <div className="panel p-8">
-          <h1 className="text-3xl font-bold mb-6">Ticket #{id}</h1>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="panel p-8">
+          <h1 className="text-3xl font-bold mb-6 text-gradient">Ticket #{id}</h1>
           
           <div className="space-y-3 mb-8">
-            <p className="text-lg"><strong>Movie:</strong> {movie.title}</p>
+            <p className="text-lg"><strong>Movie:</strong> <span className="text-gradient">{movie.title}</span></p>
             <p className="text-lg"><strong>Showtime:</strong> {show ? new Date(Number(show.showtime) * 1000).toLocaleString() : 'Unknown'}</p>
             <p className="text-lg"><strong>Status:</strong> {ticket.used ? 'Used ✓' : 'Valid ✓'}</p>
           </div>
@@ -141,22 +142,22 @@ export default function TicketDetails() {
             if (showtime && now < windowOpens) {
               const minutesLeft = Math.ceil((windowOpens - now) / 60);
               return (
-                <div className="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 mb-8 text-center">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 mb-8 text-center">
                   <p className="font-bold">🔒 Ticket unlocks 3 hours before showtime</p>
                   <p className="text-sm mt-2">Available in {minutesLeft} minutes</p>
                   {show && (
                     <p className="text-xs text-gray-300 mt-1">Showtime: {new Date(Number(show.showtime) * 1000).toLocaleString()}</p>
                   )}
-                </div>
+                </motion.div>
               );
             }
 
             if (showtime && now > showtime) {
               return (
-                <div className="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 mb-8 text-center">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 mb-8 text-center">
                   <p className="font-bold">⏱️ Ticket no longer available after showtime</p>
                   {show && <p className="text-sm mt-2">Showtime: {new Date(Number(show.showtime) * 1000).toLocaleString()}</p>}
-                </div>
+                </motion.div>
               );
             }
 
@@ -171,19 +172,19 @@ export default function TicketDetails() {
             });
 
             return (
-              <div className="bg-white p-4 rounded-lg mb-8">
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="bg-white p-4 rounded-lg mb-8">
                 <div className="flex justify-center">
                   <QRCodeSVG value={qrPayload} size={200} />
                 </div>
                 <p className="text-center text-sm text-gray-600 mt-2">Show this QR at the theater entrance</p>
-              </div>
+              </motion.div>
             );
           })()}
 
           <div className="panel p-6">
             <p className="text-center text-lg">Present this ticket at the theater entrance</p>
           </div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );

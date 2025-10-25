@@ -5,7 +5,9 @@ import { useWeb3 } from '@/contexts/Web3Context';
 import { WalletConnect } from '@/components/WalletConnect';
 import QRScanner from '@/components/QRScanner';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
+import { verifyTicket } from '@/lib/ticket-verify';
 
 // Dynamic import to avoid SSR issues
 const QRScannerDynamic = dynamic(() => import('@/components/QRScanner'), { 
@@ -19,28 +21,18 @@ export default function VerifyTicket() {
   const [ticketData, setTicketData] = useState<any>(null);
   const [error, setError] = useState<string>('');
 
-  const handleScanSuccess = (decodedText: string) => {
+  const handleScanSuccess = async (decodedText: string) => {
     try {
-      console.log('📱 Scanned data:', decodedText);
-      
-      // Parse ticket data
       const data = JSON.parse(decodedText);
-      console.log('✅ Parsed ticket:', data);
-      
-      // Validate ticket structure
-      if (!data.ticketId || !data.movieTitle || !data.showtime) {
-        throw new Error('Invalid ticket format');
+      const result = await verifyTicket(data);
+      if (!result.valid) {
+        setError(result.reason || 'Invalid ticket');
+        setTicketData(null);
+        return;
       }
-      
-      setTicketData(data);
+      setTicketData(result.normalized || null);
       setScanning(false);
       setError('');
-      
-      // Play success sound (optional)
-      if (typeof window !== 'undefined') {
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZRQ0PVqzn77BdGAg+ltryxnMpBSl+zPLaizsIGGS57OihUBELTKXh8bllHAU2jdXzzn0vBSF1xe7glEILElyx6OyrWBUIQ5zd8sFuJAUuhM/z1YU2Bhxqvu7mnEoPDlOq5O+zYBoGPJPY88p2KwUme8rx3I4+CRZiturqpVITC0mi4PK8aB8FM4nU8tGAMQYeb8Lv45pEDBBUquXvsmAdCECY3PLEcSYEKn/M8duLOQgZZrrq6aRSEgxLpODxu2keCzCFzvPWgzQGHG3A7eSaSw4OUKfj8LdjHAY5kdby0H4uBSR4yO/dkD8JEl+26+ukURAPTKPg8bxrHwU0iNTy0oI0BRxuwO7mnEsODlGn4/C4ZBsGOpHX88l4LgUkecjv3I9CCRJfturqpVMSDEuk4PK8aiAEM4nU89OBMwYcbcDu5ZpKDg5Rp+PwuGUbBjuR1/PJdy8FJHnI79yPQgkSX7bq6qVTEgxLpODyvGsgBTSJ1PLTgTMHHGzB7uWaSg4OUKfj8LllHAY6kNfyyXcuBSR4yO/cj0IJFV616uqlUhIMTKPg8bxqHwUziNTy04IzBhxswO7lm0sODlCn4/C5ZRwGOpDX8sl3LgUkeMjv3I9CCRVfterpplITDEyk4PG8ah8FM4jU8tOCMwYcbMDu5ZtLDw5Qp+PwuWUcBjqQ1/LJdy4FJHjI79yPQgkVX7bq6aZSEwxMpODxvGofBTOI1PLTgjMGHGzA7uWbSw8OUKfj8LllHAY6kNfyyXcuBSR4yO/cj0IJFV+26ummUhMMTKTg8bxqHwUziNTy04IzBhxswO7lm0sPDlCn4/C5ZRwGOpDX8sl3LgUkeMjv3I9CCRVfterpplITDEyk4PG8ah8FM4jU8tOCMwYcbMDu5ZtLDw5Qp+PwuWUcBjqQ1/LJdy4FJHjI79yPQgkVX7bq6aZSEwxMpODxvGofBTOI1PLTgjMGHGzA7uWbSw8OUKfj8LllHAY6kNfyyXcuBSR4yO/cj0IJFV+26ummUhMMTKTg8bxqHwUziNTy04IzBhxswO7lm0sPDlCn4/C5ZRwGOpDX8sl3LgUkeMjv3I9CCRVfterpplITDEyk4PG8ah8FM4jU8tOCMwYcbMDu5ZtLDw5Qp+PwuWUcBjqQ1/LJdy4FJHjI79yPQgkVX7bq6aZSEwxMpODxvGofBTOI1PLTgjMGHGzA7uWbSw8OUKfj8LllHAY6kNfyyXcuBSR4yO/cj0IJFV+26ummUhMMTKTg8bxqHwUziNTy04IzBhxswO7lm0sPDlCn4/C5ZRwGOpDX8sl3LgUkeMjv3I9CCRVfterpplITDEyk4PG8ah8FM4jU8tOCMwYcbMDu5ZtLDw5Qp+PwuWUcBjqQ1/LJdy4FJHjI79yPQgkVX7bq6aZSEwxMpODxvGofBTOI1PLTgjMGHGzA7uWbSw8=');
-        audio.play().catch(() => {});
-      }
     } catch (err) {
       console.error('❌ Error parsing QR code:', err);
       setError('Invalid QR code format. Please scan a valid ticket.');
@@ -74,16 +66,16 @@ export default function VerifyTicket() {
     <div className="min-h-screen bg-black text-white">
       <nav className="p-4 md:p-6 flex justify-between items-center border-b border-white/10 bg-black/50 backdrop-blur-md">
         <Link href="/theater-owner">
-          <h1 className="text-xl md:text-2xl font-bold cursor-pointer text-cyan-300 hover:scale-105 transition">🎬 MOVIEX Theater</h1>
+          <h1 className="text-xl md:text-2xl font-bold cursor-pointer text-gradient hover:scale-105 transition">🎬 MOVIEX Theater</h1>
         </Link>
         <WalletConnect />
       </nav>
 
       <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
-        <div className="mb-6 md:mb-8">
-          <h2 className="text-3xl md:text-5xl font-bold mb-2 accent-heading">🎫 Verify Tickets</h2>
+        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="mb-6 md:mb-8">
+          <h2 className="text-3xl md:text-5xl font-bold mb-2 text-gradient">🎫 Verify Tickets</h2>
           <p className="text-gray-400 text-sm md:text-lg">Scan customer QR codes at theater entrance</p>
-        </div>
+        </motion.div>
 
         {error && (
           <div className="border border-red-500/50 rounded-xl p-4 mb-6 bg-black/50">
@@ -134,13 +126,15 @@ export default function VerifyTicket() {
             <div className="space-y-4">
               <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                 <p className="text-xs md:text-sm text-gray-400 mb-1">Movie</p>
-                <p className="text-lg md:text-xl font-bold">{ticketData.movieTitle}</p>
+                <p className="text-lg md:text-xl font-bold">{ticketData.movieTitle || '—'}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                   <p className="text-xs md:text-sm text-gray-400 mb-1">Ticket ID</p>
-                  <p className="text-base md:text-lg font-bold">#{ticketData.ticketId}</p>
+                  <p className="text-base md:text-lg font-bold">
+                    {ticketData.tokenId ? `NFT #${ticketData.tokenId}` : (ticketData.purchaseId ? `Purchase #${ticketData.purchaseId}` : '—')}
+                  </p>
                 </div>
                 <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                   <p className="text-xs md:text-sm text-gray-400 mb-1">Seats</p>
@@ -151,18 +145,18 @@ export default function VerifyTicket() {
               <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                 <p className="text-xs md:text-sm text-gray-400 mb-1">Showtime</p>
                 <p className="text-base md:text-lg font-bold">
-                  {new Date(ticketData.showtime).toLocaleString()}
+                  {ticketData.showtimeSec ? new Date(ticketData.showtimeSec * 1000).toLocaleString() : '—'}
                 </p>
               </div>
 
               <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                 <p className="text-xs md:text-sm text-gray-400 mb-1">Amount Paid</p>
-                <p className="text-base md:text-lg font-bold text-green-400">{ticketData.amount}</p>
+                <p className="text-base md:text-lg font-bold text-green-400">{ticketData.amount || '—'}</p>
               </div>
 
               <div className="bg-black/40 border border-white/10 rounded-lg p-4">
                 <p className="text-xs md:text-sm text-gray-400 mb-1">Buyer</p>
-                <p className="text-xs md:text-sm font-mono break-all">{ticketData.buyer}</p>
+                <p className="text-xs md:text-sm font-mono break-all">{ticketData.buyer || '—'}</p>
               </div>
             </div>
 
