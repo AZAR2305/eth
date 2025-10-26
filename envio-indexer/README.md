@@ -123,8 +123,16 @@ docker --version # (optional, for production)
 
 ```bash
 cd envio-indexer
+
+# Install dependencies (correct versions for Envio 2.31)
 pnpm install
 ```
+
+**Important**: This project uses:
+- `rescript@11.1.3` (NOT 12.x)
+- `rescript-schema@9.3.0` (NOT 9.3.0-rescript12.0)
+- `rescript-envsafe@5.0.0`
+- `envio@2.31.0`
 
 ### Environment Setup
 

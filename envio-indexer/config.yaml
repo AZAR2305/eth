@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+# Correct format for Envio 2.31.0
 name: envio-indexer
 networks:
   - id: 11155111
@@ -7,19 +7,17 @@ networks:
       - name: MovieManager
         address:
           - 0x0d9C35FA08D03b1106FceBF0aa097F92C95E8b88
+        handler: src/EventHandlers.ts
         events:
-          - name: MovieAdded
-            handler: MovieManager.MovieAdded.handler
-          - name: ShowAdded
-            handler: MovieManager.ShowAdded.handler
+          - event: MovieAdded(uint256 indexed movieId, string title, address indexed owner)
+          - event: ShowAdded(uint256 indexed showId, uint256 indexed movieId, uint256 showtime, uint256 ticketPrice)
       - name: TicketEscrow
         address:
           - 0x5BAFcCD137A7318e2dd1b3c696A035940e9c09E2
+        handler: src/EventHandlers.ts
         events:
-          - name: RefundProcessed
-            handler: TicketEscrow.RefundProcessed.handler
-          - name: TicketPurchased
-            handler: TicketEscrow.TicketPurchased.handler
+          - event: RefundProcessed(uint256 indexed purchaseId, address indexed buyer, uint256 customerAmount, uint256 theaterOwnerAmount)
+          - event: TicketPurchased(uint256 indexed purchaseId, uint256 indexed showId, address indexed buyer, uint256 amount, uint256[] seatNumbers)
 
 field_selection:
   transaction_fields:

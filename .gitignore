@@ -72,7 +72,6 @@ artifacts
 typechain-types
 
 # Envio generated files
-envio-indexer/generated
 envio-indexer/.envio
 envio-indexer/node_modules
 
