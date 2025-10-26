@@ -26,3 +26,5 @@ field_selection:
 
 unordered_multichain_mode: true
 preload_handlers: true
+
+# Enable transaction field selection to access transaction hash
