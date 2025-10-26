@@ -67,8 +67,8 @@ let publicConfig = ChainMap.fromArrayUnsafe([
       chain,
       {
         confirmedBlockThreshold: 200,
-        syncSource: HyperSync({endpointUrl: "https://11155111.hypersync.xyz"}),
-        startBlock: 0,
+        syncSource: Rpc({syncConfig: Config.getSyncConfig({})}),
+        startBlock: 7365000,
         contracts,
         lowercaseAddresses: false
       }

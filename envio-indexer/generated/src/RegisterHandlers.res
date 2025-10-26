@@ -56,10 +56,10 @@ let makeGeneratedConfig = () => {
       let chain = ChainMap.Chain.makeUnsafe(~chainId=11155111)
       {
         InternalConfig.maxReorgDepth: 200,
-        startBlock: 0,
+        startBlock: 7365000,
         id: 11155111,
         contracts,
-        sources: NetworkSources.evm(~chain, ~contracts=[{name: "MovieManager",events: [Types.MovieManager.MovieAdded.register(), Types.MovieManager.ShowAdded.register()],abi: Types.MovieManager.abi}, {name: "TicketEscrow",events: [Types.TicketEscrow.RefundProcessed.register(), Types.TicketEscrow.TicketPurchased.register()],abi: Types.TicketEscrow.abi}], ~hyperSync=Some("https://11155111.hypersync.xyz"), ~allEventSignatures=[Types.MovieManager.eventSignatures, Types.TicketEscrow.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[], ~lowercaseAddresses=false)
+        sources: NetworkSources.evm(~chain, ~contracts=[{name: "MovieManager",events: [Types.MovieManager.MovieAdded.register(), Types.MovieManager.ShowAdded.register()],abi: Types.MovieManager.abi}, {name: "TicketEscrow",events: [Types.TicketEscrow.RefundProcessed.register(), Types.TicketEscrow.TicketPurchased.register()],abi: Types.TicketEscrow.abi}], ~hyperSync=None, ~allEventSignatures=[Types.MovieManager.eventSignatures, Types.TicketEscrow.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[{url: "https://eth-sepolia.g.alchemy.com/v2/demo", sourceFor: Sync, syncConfig: {}}], ~lowercaseAddresses=false)
       }
     },
   ]

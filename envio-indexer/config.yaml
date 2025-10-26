@@ -1,12 +1,17 @@
-# Correct format for Envio 2.31.0
-name: envio-indexer
+# Envio Config for Cloud Deployment v2.31.0
+name: moviex-indexer
+description: "MOVIEX blockchain ticketing platform indexer"
+
 networks:
   - id: 11155111
-    start_block: 0
+    start_block: 7365000
+    rpc_config:
+      url: https://eth-sepolia.g.alchemy.com/v2/demo
     contracts:
       - name: MovieManager
         address:
           - 0x0d9C35FA08D03b1106FceBF0aa097F92C95E8b88
+        abi_file_path: ./abis/MovieManager.json
         handler: src/EventHandlers.ts
         events:
           - event: MovieAdded(uint256 indexed movieId, string title, address indexed owner)
@@ -14,6 +19,7 @@ networks:
       - name: TicketEscrow
         address:
           - 0x5BAFcCD137A7318e2dd1b3c696A035940e9c09E2
+        abi_file_path: ./abis/TicketEscrow.json
         handler: src/EventHandlers.ts
         events:
           - event: RefundProcessed(uint256 indexed purchaseId, address indexed buyer, uint256 customerAmount, uint256 theaterOwnerAmount)

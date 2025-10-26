@@ -56,7 +56,25 @@ cd ..
 envio codegen
 ```
 
-### Step 5: Start Envio
+### Step 5: Start PostgreSQL and Hasura
+```bash
+# Start Docker services (PostgreSQL + Hasura)
+docker-compose -f docker-compose-simple.yml up -d
+
+# Wait for services to be ready (30 seconds)
+sleep 30
+
+# Verify services are running
+docker ps | grep envio
+```
+
+**Expected output:**
+```
+envio-postgres    postgres:14        Up (healthy)
+envio-hasura      hasura/graphql...  Up (healthy)
+```
+
+### Step 6: Start Envio Indexer
 ```bash
 # Set API token (if needed)
 export ENVIO_API_TOKEN="your-api-token-here"
@@ -65,12 +83,10 @@ export ENVIO_API_TOKEN="your-api-token-here"
 envio dev
 ```
 
-## Quick Setup Script
-
-Run this script to automate the setup:
+**Or use the automated script:**
 ```bash
-chmod +x setup-envio.sh
-./setup-envio.sh
+chmod +x start-envio.sh
+./start-envio.sh
 ```
 
 ## Alternative: Manual ReScript Build

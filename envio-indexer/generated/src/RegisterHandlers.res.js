@@ -59,7 +59,7 @@ function makeGeneratedConfig() {
   var chain = ChainMap.Chain.makeUnsafe(11155111);
   var chains = [{
       id: 11155111,
-      startBlock: 0,
+      startBlock: 7365000,
       maxReorgDepth: 200,
       contracts: contracts,
       sources: NetworkSources.evm(chain, [
@@ -79,10 +79,14 @@ function makeGeneratedConfig() {
                 Types.TicketEscrow.TicketPurchased.register()
               ]
             }
-          ], "https://11155111.hypersync.xyz", Belt_Array.concatMany([
+          ], undefined, Belt_Array.concatMany([
                 Types.MovieManager.eventSignatures,
                 Types.TicketEscrow.eventSignatures
-              ]), true, [], false)
+              ]), true, [{
+              url: "https://eth-sepolia.g.alchemy.com/v2/demo",
+              sourceFor: "Sync",
+              syncConfig: {}
+            }], false)
     }];
   return Config.make(true, false, true, chains, false, true, undefined, undefined, undefined, Env.batchSize, false, true);
 }

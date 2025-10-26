@@ -2,6 +2,7 @@
 'use strict';
 
 var Types = require("./Types.res.js");
+var Config = require("./Config.res.js");
 var Js_exn = require("rescript/lib/js/js_exn.js");
 var Js_dict = require("rescript/lib/js/js_dict.js");
 var ChainMap = require("envio/src/ChainMap.res.js");
@@ -39,12 +40,12 @@ var publicConfig = ChainMap.fromArrayUnsafe([[
         chain,
         {
           syncSource: {
-            TAG: "HyperSync",
+            TAG: "Rpc",
             _0: {
-              endpointUrl: "https://11155111.hypersync.xyz"
+              syncConfig: Config.getSyncConfig({})
             }
           },
-          startBlock: 0,
+          startBlock: 7365000,
           confirmedBlockThreshold: 200,
           contracts: contracts,
           lowercaseAddresses: false

@@ -39,18 +39,31 @@ echo "   ✅ Hasura is ready!"
 
 # Step 4: Run migrations
 echo ""
-echo "4️⃣ Running database migrations..."
-cd generated
-pnpm run db-setup || echo "⚠️  Migrations may have failed, continuing..."
-cd ..
+#!/bin/bash
 
-# Step 5: Start indexer
+# Complete Envio Startup Script
+# This script starts all required services and the indexer
+
+cd /mnt/c/Users/thame/eth/envio-indexer
+
+echo "🐳 Starting PostgreSQL and Hasura with Docker..."
+docker-compose -f docker-compose-simple.yml up -d
+
+echo "⏳ Waiting for services to be healthy (30 seconds)..."
+sleep 30
+
+echo "🔍 Checking service health..."
+docker ps | grep envio
+
 echo ""
-echo "5️⃣ Starting Envio indexer..."
-echo ""
-echo "📊 Hasura Console: http://localhost:8081 (password: testing)"
-echo "🔗 GraphQL Endpoint: http://localhost:8081/v1/graphql"
+echo "📊 Services should be running:"
+echo "  - PostgreSQL: localhost:5432"
+echo "  - Hasura Console: http://localhost:8081"
 echo ""
 
-export TUI_OFF=true
-pnpm exec envio start
+echo "� Starting Envio indexer..."
+envio dev
+
+# If envio dev fails, you can try:
+# TUI_OFF=true envio dev
+
