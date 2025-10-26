@@ -69,3 +69,4 @@ TicketEscrow.TicketPurchased.handler(async ({ event, context }) => {
 });
 // Envio indexer integration for ChainTickets project
 
+// Enable transaction field selection to access transaction hash
