@@ -67,3 +67,5 @@ TicketEscrow.TicketPurchased.handler(async ({ event, context }) => {
 
   context.TicketEscrow_TicketPurchased.set(entity);
 });
+// Envio indexer integration for ChainTickets project
+
