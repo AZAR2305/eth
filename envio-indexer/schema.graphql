@@ -7,7 +7,7 @@ type MovieManager_MovieAdded @entity {
   blockTimestamp: BigInt!
   transactionHash: String!
 }
-
+ 
 type MovieManager_ShowAdded @entity {
   id: ID!
   showId: BigInt!
@@ -18,7 +18,7 @@ type MovieManager_ShowAdded @entity {
   blockTimestamp: BigInt!
   transactionHash: String!
 }
-
+ 
 type TicketEscrow_RefundProcessed @entity {
   id: ID!
   purchaseId: BigInt!
@@ -29,7 +29,7 @@ type TicketEscrow_RefundProcessed @entity {
   blockTimestamp: BigInt!
   transactionHash: String!
 }
-
+ 
 type TicketEscrow_TicketPurchased @entity {
   id: ID!
   purchaseId: BigInt!
