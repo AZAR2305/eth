@@ -102,11 +102,45 @@ function MakeRegister($$Event) {
     EventRegister.setContractRegister($$Event.handlerRegister, contractRegister$1, eventConfig, undefined);
   };
   var handler = function (handler$1, eventConfig) {
-    EventRegister.setHandler($$Event.handlerRegister, handler$1, eventConfig, undefined);
+    EventRegister.setHandler($$Event.handlerRegister, (function (args) {
+            if (args.context.isPreload) {
+              return Promise.resolve();
+            } else {
+              return handler$1(args);
+            }
+          }), eventConfig, undefined);
+  };
+  var handlerWithLoader = function (eventConfig) {
+    var tmp;
+    var exit = 0;
+    if (eventConfig.wildcard !== undefined || eventConfig.eventFilters !== undefined) {
+      exit = 1;
+    } else {
+      tmp = undefined;
+    }
+    if (exit === 1) {
+      tmp = {
+        wildcard: eventConfig.wildcard,
+        eventFilters: eventConfig.eventFilters,
+        preRegisterDynamicContracts: eventConfig.preRegisterDynamicContracts
+      };
+    }
+    EventRegister.setHandler($$Event.handlerRegister, (function (args) {
+            var promise = eventConfig.loader(args);
+            if (args.context.isPreload) {
+              return promise;
+            } else {
+              return promise.then(function (loaderReturn) {
+                          args.loaderReturn = loaderReturn;
+                          return eventConfig.handler(args);
+                        });
+            }
+          }), tmp, undefined);
   };
   return {
           contractRegister: contractRegister,
-          handler: handler
+          handler: handler,
+          handlerWithLoader: handlerWithLoader
         };
 }
 

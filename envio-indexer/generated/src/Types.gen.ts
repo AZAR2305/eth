@@ -7,6 +7,8 @@ import type {HandlerContext as $$handlerContext} from './Types.ts';
 
 import type {HandlerWithOptions as $$fnWithEventConfig} from './bindings/OpaqueTypes.ts';
 
+import type {LoaderContext as $$loaderContext} from './Types.ts';
+
 import type {MovieManager_MovieAdded_t as Entities_MovieManager_MovieAdded_t} from '../src/db/Entities.gen';
 
 import type {MovieManager_ShowAdded_t as Entities_MovieManager_ShowAdded_t} from '../src/db/Entities.gen';
@@ -16,6 +18,8 @@ import type {SingleOrMultiple as $$SingleOrMultiple_t} from './bindings/OpaqueTy
 import type {TicketEscrow_RefundProcessed_t as Entities_TicketEscrow_RefundProcessed_t} from '../src/db/Entities.gen';
 
 import type {TicketEscrow_TicketPurchased_t as Entities_TicketEscrow_TicketPurchased_t} from '../src/db/Entities.gen';
+
+import type {entityHandlerContext as Internal_entityHandlerContext} from 'envio/src/Internal.gen';
 
 import type {eventOptions as Internal_eventOptions} from 'envio/src/Internal.gen';
 
@@ -27,7 +31,13 @@ import type {genericEvent as Internal_genericEvent} from 'envio/src/Internal.gen
 
 import type {genericHandlerArgs as Internal_genericHandlerArgs} from 'envio/src/Internal.gen';
 
+import type {genericHandlerWithLoader as Internal_genericHandlerWithLoader} from 'envio/src/Internal.gen';
+
 import type {genericHandler as Internal_genericHandler} from 'envio/src/Internal.gen';
+
+import type {genericLoaderArgs as Internal_genericLoaderArgs} from 'envio/src/Internal.gen';
+
+import type {genericLoader as Internal_genericLoader} from 'envio/src/Internal.gen';
 
 import type {logger as Envio_logger} from 'envio/src/Envio.gen';
 
@@ -42,7 +52,7 @@ export type contractRegistrations = {
   readonly addTicketEscrow: (_1:Address_t) => void
 };
 
-export type entityHandlerContext<entity,indexedFieldOperations> = {
+export type entityLoaderContext<entity,indexedFieldOperations> = {
   readonly get: (_1:id) => Promise<(undefined | entity)>; 
   readonly getOrThrow: (_1:id, message:(undefined | string)) => Promise<entity>; 
   readonly getWhere: indexedFieldOperations; 
@@ -50,6 +60,10 @@ export type entityHandlerContext<entity,indexedFieldOperations> = {
   readonly set: (_1:entity) => void; 
   readonly deleteUnsafe: (_1:id) => void
 };
+
+export type loaderContext = $$loaderContext;
+
+export type entityHandlerContext<entity> = Internal_entityHandlerContext<entity>;
 
 export type handlerContext = $$handlerContext;
 
@@ -92,9 +106,21 @@ export type HandlerTypes_contractRegisterArgs<eventArgs> = Internal_genericContr
 
 export type HandlerTypes_contractRegister<eventArgs> = Internal_genericContractRegister<HandlerTypes_contractRegisterArgs<eventArgs>>;
 
+export type HandlerTypes_loaderArgs<eventArgs> = Internal_genericLoaderArgs<eventLog<eventArgs>,loaderContext>;
+
+export type HandlerTypes_loader<eventArgs,loaderReturn> = Internal_genericLoader<HandlerTypes_loaderArgs<eventArgs>,loaderReturn>;
+
+export type HandlerTypes_handlerArgs<eventArgs,loaderReturn> = Internal_genericHandlerArgs<eventLog<eventArgs>,handlerContext,loaderReturn>;
+
+export type HandlerTypes_handler<eventArgs,loaderReturn> = Internal_genericHandler<HandlerTypes_handlerArgs<eventArgs,loaderReturn>>;
+
+export type HandlerTypes_loaderHandler<eventArgs,loaderReturn,eventFilters> = Internal_genericHandlerWithLoader<HandlerTypes_loader<eventArgs,loaderReturn>,HandlerTypes_handler<eventArgs,loaderReturn>,eventFilters>;
+
 export type HandlerTypes_eventConfig<eventFilters> = Internal_eventOptions<eventFilters>;
 
 export type fnWithEventConfig<fn,eventConfig> = $$fnWithEventConfig<fn,eventConfig>;
+
+export type handlerWithOptions<eventArgs,loaderReturn,eventFilters> = fnWithEventConfig<HandlerTypes_handler<eventArgs,loaderReturn>,HandlerTypes_eventConfig<eventFilters>>;
 
 export type contractRegisterWithOptions<eventArgs,eventFilters> = fnWithEventConfig<HandlerTypes_contractRegister<eventArgs>,HandlerTypes_eventConfig<eventFilters>>;
 
@@ -125,9 +151,13 @@ export type MovieManager_MovieAdded_event = {
   readonly block: MovieManager_MovieAdded_block
 };
 
-export type MovieManager_MovieAdded_handlerArgs = Internal_genericHandlerArgs<MovieManager_MovieAdded_event,handlerContext,void>;
+export type MovieManager_MovieAdded_loaderArgs = Internal_genericLoaderArgs<MovieManager_MovieAdded_event,loaderContext>;
 
-export type MovieManager_MovieAdded_handler = Internal_genericHandler<MovieManager_MovieAdded_handlerArgs>;
+export type MovieManager_MovieAdded_loader<loaderReturn> = Internal_genericLoader<MovieManager_MovieAdded_loaderArgs,loaderReturn>;
+
+export type MovieManager_MovieAdded_handlerArgs<loaderReturn> = Internal_genericHandlerArgs<MovieManager_MovieAdded_event,handlerContext,loaderReturn>;
+
+export type MovieManager_MovieAdded_handler<loaderReturn> = Internal_genericHandler<MovieManager_MovieAdded_handlerArgs<loaderReturn>>;
 
 export type MovieManager_MovieAdded_contractRegister = Internal_genericContractRegister<Internal_genericContractRegisterArgs<MovieManager_MovieAdded_event,contractRegistrations>>;
 
@@ -174,9 +204,13 @@ export type MovieManager_ShowAdded_event = {
   readonly block: MovieManager_ShowAdded_block
 };
 
-export type MovieManager_ShowAdded_handlerArgs = Internal_genericHandlerArgs<MovieManager_ShowAdded_event,handlerContext,void>;
+export type MovieManager_ShowAdded_loaderArgs = Internal_genericLoaderArgs<MovieManager_ShowAdded_event,loaderContext>;
 
-export type MovieManager_ShowAdded_handler = Internal_genericHandler<MovieManager_ShowAdded_handlerArgs>;
+export type MovieManager_ShowAdded_loader<loaderReturn> = Internal_genericLoader<MovieManager_ShowAdded_loaderArgs,loaderReturn>;
+
+export type MovieManager_ShowAdded_handlerArgs<loaderReturn> = Internal_genericHandlerArgs<MovieManager_ShowAdded_event,handlerContext,loaderReturn>;
+
+export type MovieManager_ShowAdded_handler<loaderReturn> = Internal_genericHandler<MovieManager_ShowAdded_handlerArgs<loaderReturn>>;
 
 export type MovieManager_ShowAdded_contractRegister = Internal_genericContractRegister<Internal_genericContractRegisterArgs<MovieManager_ShowAdded_event,contractRegistrations>>;
 
@@ -225,9 +259,13 @@ export type TicketEscrow_RefundProcessed_event = {
   readonly block: TicketEscrow_RefundProcessed_block
 };
 
-export type TicketEscrow_RefundProcessed_handlerArgs = Internal_genericHandlerArgs<TicketEscrow_RefundProcessed_event,handlerContext,void>;
+export type TicketEscrow_RefundProcessed_loaderArgs = Internal_genericLoaderArgs<TicketEscrow_RefundProcessed_event,loaderContext>;
 
-export type TicketEscrow_RefundProcessed_handler = Internal_genericHandler<TicketEscrow_RefundProcessed_handlerArgs>;
+export type TicketEscrow_RefundProcessed_loader<loaderReturn> = Internal_genericLoader<TicketEscrow_RefundProcessed_loaderArgs,loaderReturn>;
+
+export type TicketEscrow_RefundProcessed_handlerArgs<loaderReturn> = Internal_genericHandlerArgs<TicketEscrow_RefundProcessed_event,handlerContext,loaderReturn>;
+
+export type TicketEscrow_RefundProcessed_handler<loaderReturn> = Internal_genericHandler<TicketEscrow_RefundProcessed_handlerArgs<loaderReturn>>;
 
 export type TicketEscrow_RefundProcessed_contractRegister = Internal_genericContractRegister<Internal_genericContractRegisterArgs<TicketEscrow_RefundProcessed_event,contractRegistrations>>;
 
@@ -275,9 +313,13 @@ export type TicketEscrow_TicketPurchased_event = {
   readonly block: TicketEscrow_TicketPurchased_block
 };
 
-export type TicketEscrow_TicketPurchased_handlerArgs = Internal_genericHandlerArgs<TicketEscrow_TicketPurchased_event,handlerContext,void>;
+export type TicketEscrow_TicketPurchased_loaderArgs = Internal_genericLoaderArgs<TicketEscrow_TicketPurchased_event,loaderContext>;
 
-export type TicketEscrow_TicketPurchased_handler = Internal_genericHandler<TicketEscrow_TicketPurchased_handlerArgs>;
+export type TicketEscrow_TicketPurchased_loader<loaderReturn> = Internal_genericLoader<TicketEscrow_TicketPurchased_loaderArgs,loaderReturn>;
+
+export type TicketEscrow_TicketPurchased_handlerArgs<loaderReturn> = Internal_genericHandlerArgs<TicketEscrow_TicketPurchased_event,handlerContext,loaderReturn>;
+
+export type TicketEscrow_TicketPurchased_handler<loaderReturn> = Internal_genericHandler<TicketEscrow_TicketPurchased_handlerArgs<loaderReturn>>;
 
 export type TicketEscrow_TicketPurchased_contractRegister = Internal_genericContractRegister<Internal_genericContractRegisterArgs<TicketEscrow_TicketPurchased_event,contractRegistrations>>;
 

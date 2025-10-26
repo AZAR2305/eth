@@ -91,23 +91,132 @@ const ENVIO_URL = 'https://indexer.envio.dev/your-id/v1/graphql';
 
 ## 🐛 If Deployment Still Fails
 
-Check these common issues:
+### "Failed to apply schema" - Common Causes:
 
-1. **"Failed to apply schema"**:
-   - Verify `schema.graphql` syntax (no trailing spaces)
-   - Ensure all event types match config.yaml
+1. **Line Ending Issues**:
+   ```bash
+   # Convert CRLF to LF
+   cd /mnt/c/Users/thame/eth/envio-indexer
+   cat schema.graphql | tr -d '\r' > schema.graphql.tmp
+   mv schema.graphql.tmp schema.graphql
+   ```
 
-2. **"Contract not found"**:
-   - Check contract addresses are deployed on Sepolia
-   - Verify `start_block` is at or after deployment block
+2. **RPC URL Issues**:
+   - ❌ Don't use: `https://eth-sepolia.g.alchemy.com/v2/demo`
+   - ✅ Use public RPC: `https://ethereum-sepolia-rpc.publicnode.com`
+   - ✅ Or get your own Alchemy/Infura key
 
-3. **"RPC error"**:
-   - Use a reliable RPC URL (Alchemy, Infura, or public Sepolia RPC)
-   - Update `rpc_config.url` in config.yaml
+3. **Config Validation**:
+   ```bash
+   # Test locally first
+   pnpm exec envio codegen
+   
+   # Should finish without errors
+   ```
 
-4. **"ABI parsing error"**:
-   - Verify ABI files are valid JSON
-   - Check event signatures match exactly
+4. **Schema Validation**:
+   - No trailing whitespace
+   - No empty lines at end
+   - All types must match event names exactly
+   - Example: `MovieManager_MovieAdded` (contract_event format)
+
+5. **ABI Files**:
+   ```bash
+   # Verify ABIs exist and are valid JSON
+   ls -lh abis/
+   cat abis/MovieManager.json | jq . > /dev/null && echo "Valid JSON"
+   ```
+
+6. **Remove Optional Features** (if still failing):
+   ```yaml
+   # In config.yaml, remove these lines:
+   # unordered_multichain_mode: true
+   # preload_handlers: true
+   
+   # Keep minimal config:
+   field_selection:
+     transaction_fields:
+       - "hash"
+   ```
+
+### Step-by-Step Debug Process:
+
+**Step 1**: Validate config locally
+```bash
+cd /mnt/c/Users/thame/eth/envio-indexer
+pnpm exec envio codegen
+```
+
+**Step 2**: Check file integrity
+```bash
+# Schema should have exactly 42 lines, no CRLF
+wc -l schema.graphql
+file schema.graphql  # Should say "ASCII text"
+
+# ABIs should be valid JSON
+jq . abis/MovieManager.json > /dev/null
+jq . abis/TicketEscrow.json > /dev/null
+```
+
+**Step 3**: Verify Git files
+```bash
+# Make sure all files are committed
+git status
+
+# Should show:
+# abis/MovieManager.json
+# abis/TicketEscrow.json
+# config.yaml
+# schema.graphql
+```
+
+**Step 4**: Clean deployment
+```bash
+# Remove any cache
+rm -rf generated/lib
+rm -rf .envio
+
+# Regenerate
+pnpm exec envio codegen
+
+# Commit and push
+git add .
+git commit -m "Clean Envio deployment"
+git push
+```
+
+**Step 5**: Check Envio dashboard logs
+- Go to https://envio.dev/app/
+- Click on your indexer
+- Check "Logs" tab for detailed error messages
+
+### Alternative: Use Envio CLI Deployment
+
+Instead of GitHub deployment, try CLI:
+
+```bash
+cd /mnt/c/Users/thame/eth/envio-indexer
+
+# Login (if not already)
+export ENVIO_API_TOKEN="ac3f7148-2a59-4bc1-866f-936d1e9a2b98"
+pnpm exec envio login
+
+# Deploy directly
+pnpm exec envio deploy
+
+# Follow prompts
+```
+
+### Contact Envio Support
+
+If still failing after all fixes:
+1. Join Envio Discord: https://discord.gg/envio
+2. Share error logs from dashboard
+3. Mention you're using:
+   - Envio v2.31.0
+   - ReScript 11.1.3
+   - Sepolia testnet
+   - 2 contracts (MovieManager, TicketEscrow)
 
 ## 💡 Pro Tips
 

@@ -41,4 +41,3 @@ type TicketEscrow_TicketPurchased {
   blockTimestamp: BigInt!
   transactionHash: String!
 }
-

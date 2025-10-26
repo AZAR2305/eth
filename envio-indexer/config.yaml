@@ -6,7 +6,7 @@ networks:
   - id: 11155111
     start_block: 7365000
     rpc_config:
-      url: https://eth-sepolia.g.alchemy.com/v2/demo
+      url: https://ethereum-sepolia-rpc.publicnode.com
     contracts:
       - name: MovieManager
         address:
@@ -28,6 +28,3 @@ networks:
 field_selection:
   transaction_fields:
     - "hash"
-
-unordered_multichain_mode: true
-preload_handlers: true

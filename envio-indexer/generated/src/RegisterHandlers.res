@@ -59,7 +59,7 @@ let makeGeneratedConfig = () => {
         startBlock: 7365000,
         id: 11155111,
         contracts,
-        sources: NetworkSources.evm(~chain, ~contracts=[{name: "MovieManager",events: [Types.MovieManager.MovieAdded.register(), Types.MovieManager.ShowAdded.register()],abi: Types.MovieManager.abi}, {name: "TicketEscrow",events: [Types.TicketEscrow.RefundProcessed.register(), Types.TicketEscrow.TicketPurchased.register()],abi: Types.TicketEscrow.abi}], ~hyperSync=None, ~allEventSignatures=[Types.MovieManager.eventSignatures, Types.TicketEscrow.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[{url: "https://eth-sepolia.g.alchemy.com/v2/demo", sourceFor: Sync, syncConfig: {}}], ~lowercaseAddresses=false)
+        sources: NetworkSources.evm(~chain, ~contracts=[{name: "MovieManager",events: [Types.MovieManager.MovieAdded.register(), Types.MovieManager.ShowAdded.register()],abi: Types.MovieManager.abi}, {name: "TicketEscrow",events: [Types.TicketEscrow.RefundProcessed.register(), Types.TicketEscrow.TicketPurchased.register()],abi: Types.TicketEscrow.abi}], ~hyperSync=None, ~allEventSignatures=[Types.MovieManager.eventSignatures, Types.TicketEscrow.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[{url: "https://ethereum-sepolia-rpc.publicnode.com", sourceFor: Sync, syncConfig: {}}], ~lowercaseAddresses=false)
       }
     },
   ]
@@ -67,11 +67,11 @@ let makeGeneratedConfig = () => {
   Config.make(
     ~shouldRollbackOnReorg=true,
     ~shouldSaveFullHistory=false,
-    ~isUnorderedMultichainMode=true,
+    ~isUnorderedMultichainMode=false,
     ~chains,
     ~enableRawEvents=false,
     ~batchSize=?Env.batchSize,
-    ~preloadHandlers=true,
+    ~preloadHandlers=false,
     ~lowercaseAddresses=false,
     ~shouldUseHypersyncClientDecoder=true,
   )

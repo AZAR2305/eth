@@ -83,12 +83,12 @@ function makeGeneratedConfig() {
                 Types.MovieManager.eventSignatures,
                 Types.TicketEscrow.eventSignatures
               ]), true, [{
-              url: "https://eth-sepolia.g.alchemy.com/v2/demo",
+              url: "https://ethereum-sepolia-rpc.publicnode.com",
               sourceFor: "Sync",
               syncConfig: {}
             }], false)
     }];
-  return Config.make(true, false, true, chains, false, true, undefined, undefined, undefined, Env.batchSize, false, true);
+  return Config.make(true, false, false, chains, false, false, undefined, undefined, undefined, Env.batchSize, false, true);
 }
 
 var config = {
