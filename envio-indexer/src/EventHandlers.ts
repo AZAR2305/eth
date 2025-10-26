@@ -8,7 +8,7 @@ import {
   TicketEscrow_TicketPurchased
 } from "../generated";
 
-MovieManager.MovieAdded.handler(async ({ event, context }) => {
+MovieManager.MovieAdded.handler(async ({ event, context }: { event: any; context: any }) => {
   const entity: MovieManager_MovieAdded = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     movieId: event.params.movieId,
@@ -22,7 +22,7 @@ MovieManager.MovieAdded.handler(async ({ event, context }) => {
   context.MovieManager_MovieAdded.set(entity);
 });
 
-MovieManager.ShowAdded.handler(async ({ event, context }) => {
+MovieManager.ShowAdded.handler(async ({ event, context }: { event: any; context: any }) => {
   const entity: MovieManager_ShowAdded = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     showId: event.params.showId,
@@ -37,7 +37,7 @@ MovieManager.ShowAdded.handler(async ({ event, context }) => {
   context.MovieManager_ShowAdded.set(entity);
 });
 
-TicketEscrow.RefundProcessed.handler(async ({ event, context }) => {
+TicketEscrow.RefundProcessed.handler(async ({ event, context }: { event: any; context: any }) => {
   const entity: TicketEscrow_RefundProcessed = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     purchaseId: event.params.purchaseId,
@@ -52,7 +52,7 @@ TicketEscrow.RefundProcessed.handler(async ({ event, context }) => {
   context.TicketEscrow_RefundProcessed.set(entity);
 });
 
-TicketEscrow.TicketPurchased.handler(async ({ event, context }) => {
+TicketEscrow.TicketPurchased.handler(async ({ event, context }: { event: any; context: any }) => {
   const entity: TicketEscrow_TicketPurchased = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     purchaseId: event.params.purchaseId,
