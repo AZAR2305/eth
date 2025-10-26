@@ -1,4 +1,4 @@
-type MovieManager_MovieAdded {
+type MovieManager_MovieAdded @entity {
   id: ID!
   movieId: BigInt!
   title: String!
@@ -8,7 +8,7 @@ type MovieManager_MovieAdded {
   transactionHash: String!
 }
 
-type MovieManager_ShowAdded {
+type MovieManager_ShowAdded @entity {
   id: ID!
   showId: BigInt!
   movieId: BigInt!
@@ -19,7 +19,7 @@ type MovieManager_ShowAdded {
   transactionHash: String!
 }
 
-type TicketEscrow_RefundProcessed {
+type TicketEscrow_RefundProcessed @entity {
   id: ID!
   purchaseId: BigInt!
   buyer: String!
@@ -30,7 +30,7 @@ type TicketEscrow_RefundProcessed {
   transactionHash: String!
 }
 
-type TicketEscrow_TicketPurchased {
+type TicketEscrow_TicketPurchased @entity {
   id: ID!
   purchaseId: BigInt!
   showId: BigInt!
