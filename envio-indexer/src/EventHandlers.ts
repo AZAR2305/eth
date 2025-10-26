@@ -6,7 +6,7 @@ import {
   TicketEscrow,
   TicketEscrow_RefundProcessed,
   TicketEscrow_TicketPurchased
-} from "../generated";
+} from "generated";
 
 MovieManager.MovieAdded.handler(async ({ event, context }: { event: any; context: any }) => {
   const entity: MovieManager_MovieAdded = {
