@@ -59,7 +59,7 @@ TicketEscrow.TicketPurchased.handler(async ({ event, context }: { event: any; co
     showId: event.params.showId,
     buyer: event.params.buyer,
     amount: event.params.amount,
-    seatNumbers: event.params.seatNumbers,
+    seatNumbers: event.params.seatNumbers.map((n: any) => BigInt(n)),
     blockNumber: BigInt(event.block.number),
     blockTimestamp: BigInt(event.block.timestamp),
     transactionHash: event.transaction.hash,
